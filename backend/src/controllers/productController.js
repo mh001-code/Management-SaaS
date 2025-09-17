@@ -1,88 +1,66 @@
-import pool from "../config/db.js";
+// backend/src/controllers/productController.js
+import * as ProductModel from "../models/ProductModel.js";
 
-// Listar todos os produtos
 export const getProducts = async (req, res, next) => {
   try {
-    const result = await pool.query("SELECT * FROM products ORDER BY id ASC");
-    res.json(result.rows);
+    const products = await ProductModel.getAllProducts();
+    res.json(products);
   } catch (err) {
     next(err);
   }
 };
 
-// Buscar produto por ID
 export const getProductById = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const result = await pool.query("SELECT * FROM products WHERE id = $1", [id]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Produto não encontrado" });
+    const product = await ProductModel.getProductById(req.params.id);
+    if (!product) {
+      const error = new Error("Produto não encontrado");
+      error.statusCode = 404;
+      return next(error);
     }
-
-    res.json(result.rows[0]);
+    res.json(product);
   } catch (err) {
     next(err);
   }
 };
 
-// Criar novo produto
 export const createProduct = async (req, res, next) => {
   try {
     const { name, description, price, stock } = req.body;
-
-    if (!name || !price) {
-      return res.status(400).json({ error: "Nome e preço são obrigatórios" });
+    if (!name || price === undefined) {
+      const error = new Error("Nome e preço são obrigatórios");
+      error.statusCode = 400;
+      return next(error);
     }
-
-    const result = await pool.query(
-      "INSERT INTO products (name, description, price, stock) VALUES ($1, $2, $3, $4) RETURNING *",
-      [name, description || "", price, stock || 0]
-    );
-
-    res.status(201).json(result.rows[0]);
+    const product = await ProductModel.createProduct({ name, description, price, stock });
+    res.status(201).json(product);
   } catch (err) {
     next(err);
   }
 };
 
-// Atualizar produto
 export const updateProduct = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const { name, description, price, stock } = req.body;
-
-    const result = await pool.query(
-      `UPDATE products
-       SET name = COALESCE($1, name),
-           description = COALESCE($2, description),
-           price = COALESCE($3, price),
-           stock = COALESCE($4, stock)
-       WHERE id = $5
-       RETURNING *`,
-      [name, description, price, stock, id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Produto não encontrado" });
+    const product = await ProductModel.updateProduct(req.params.id, req.body);
+    if (!product) {
+      const error = new Error("Produto não encontrado");
+      error.statusCode = 404;
+      return next(error);
     }
-
-    res.json(result.rows[0]);
+    res.json(product);
   } catch (err) {
     next(err);
   }
 };
 
-// Deletar produto
 export const deleteProduct = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const result = await pool.query("DELETE FROM products WHERE id = $1 RETURNING id", [id]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Produto não encontrado" });
+    const deleted = await ProductModel.deleteProduct(req.params.id);
+    if (!deleted) {
+      const error = new Error("Produto não encontrado");
+      error.statusCode = 404;
+      return next(error);
     }
-
     res.json({ message: "Produto deletado com sucesso" });
   } catch (err) {
     next(err);

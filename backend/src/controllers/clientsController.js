@@ -1,10 +1,11 @@
-import pool from "../config/db.js";
+// backend/src/controllers/clientsController.js
+import * as ClientModel from "../models/ClientModel.js";
 
 // Listar todos os clientes
 export const getClients = async (req, res, next) => {
   try {
-    const result = await pool.query("SELECT * FROM clients ORDER BY id ASC");
-    res.json(result.rows);
+    const clients = await ClientModel.getAllClients();
+    res.json(clients);
   } catch (err) {
     next(err);
   }
@@ -14,13 +15,15 @@ export const getClients = async (req, res, next) => {
 export const getClientById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const result = await pool.query("SELECT * FROM clients WHERE id = $1", [id]);
+    const client = await ClientModel.getClientById(id);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Cliente não encontrado" });
+    if (!client) {
+      const error = new Error("Cliente não encontrado");
+      error.statusCode = 404;
+      return next(error);
     }
 
-    res.json(result.rows[0]);
+    res.json(client);
   } catch (err) {
     next(err);
   }
@@ -29,24 +32,23 @@ export const getClientById = async (req, res, next) => {
 // Criar cliente
 export const createClient = async (req, res, next) => {
   try {
-    const { name, email, phone, address } = req.body;
+    const { name, email, phone } = req.body;
 
     if (!name) {
-      return res.status(400).json({ error: "Nome é obrigatório" });
+      const error = new Error("Nome é obrigatório");
+      error.statusCode = 400;
+      return next(error);
     }
 
-    const result = await pool.query(
-      "INSERT INTO clients (name, email, phone, address) VALUES ($1, $2, $3, $4) RETURNING *",
-      [name, email || "", phone || "", address || ""]
-    );
-
-    res.status(201).json(result.rows[0]);
+    const client = await ClientModel.createClient(name, email || "", phone || "");
+    res.status(201).json(client);
   } catch (err) {
     if (err.code === "23505") {
-      res.status(400).json({ error: "Email já cadastrado" });
-    } else {
-      next(err);
+      const error = new Error("Email já cadastrado");
+      error.statusCode = 400;
+      return next(error);
     }
+    next(err);
   }
 };
 
@@ -54,30 +56,24 @@ export const createClient = async (req, res, next) => {
 export const updateClient = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { name, email, phone, address } = req.body;
+    const { name, email, phone } = req.body;
 
-    const result = await pool.query(
-      `UPDATE clients
-       SET name = COALESCE($1, name),
-           email = COALESCE($2, email),
-           phone = COALESCE($3, phone),
-           address = COALESCE($4, address)
-       WHERE id = $5
-       RETURNING *`,
-      [name, email, phone, address, id]
-    );
+    const updatedClient = await ClientModel.updateClient(id, name, email, phone);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Cliente não encontrado" });
+    if (!updatedClient) {
+      const error = new Error("Cliente não encontrado");
+      error.statusCode = 404;
+      return next(error);
     }
 
-    res.json(result.rows[0]);
+    res.json(updatedClient);
   } catch (err) {
     if (err.code === "23505") {
-      res.status(400).json({ error: "Email já cadastrado" });
-    } else {
-      next(err);
+      const error = new Error("Email já cadastrado");
+      error.statusCode = 400;
+      return next(error);
     }
+    next(err);
   }
 };
 
@@ -85,10 +81,12 @@ export const updateClient = async (req, res, next) => {
 export const deleteClient = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const result = await pool.query("DELETE FROM clients WHERE id = $1 RETURNING id", [id]);
+    const deletedClient = await ClientModel.deleteClient(id);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Cliente não encontrado" });
+    if (!deletedClient) {
+      const error = new Error("Cliente não encontrado");
+      error.statusCode = 404;
+      return next(error);
     }
 
     res.json({ message: "Cliente deletado com sucesso" });

@@ -1,39 +1,39 @@
-import pool from "../config/db.js";
 import bcrypt from "bcryptjs";
+import * as UserModel from "../models/UserModel.js";
 
+// Listar todos os usuários
 export const getUsers = async (req, res, next) => {
   try {
-    const result = await pool.query("SELECT id, name, email, created_at FROM users");
-    res.json(result.rows);
+    const users = await UserModel.getAllUsers();
+    res.json(users);
   } catch (err) {
     next(err);
   }
 };
 
+// Listar usuário por ID
 export const getUserById = async (req, res, next) => {
   const { id } = req.params;
   try {
-    const result = await pool.query("SELECT id, name, email, created_at FROM users WHERE id=$1", [id]);
-    if (result.rows.length === 0) {
+    const user = await UserModel.getUserById(id);
+    if (!user) {
       const error = new Error("Usuário não encontrado");
       error.statusCode = 404;
       return next(error);
     }
-    res.json(result.rows[0]);
+    res.json(user);
   } catch (err) {
     next(err);
   }
 };
 
+// Criar usuário
 export const createUser = async (req, res, next) => {
   const { name, email, password } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const result = await pool.query(
-      "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email, created_at",
-      [name, email, hashedPassword]
-    );
-    res.status(201).json(result.rows[0]);
+    const newUser = await UserModel.createUser(name, email, hashedPassword);
+    res.status(201).json(newUser);
   } catch (err) {
     if (err.code === "23505") {
       const error = new Error("Email já cadastrado");
@@ -44,29 +44,19 @@ export const createUser = async (req, res, next) => {
   }
 };
 
+// Atualizar usuário
 export const updateUser = async (req, res, next) => {
   const { id } = req.params;
   const { name, email, password } = req.body;
   try {
     const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
-
-    const result = await pool.query(
-      `UPDATE users 
-       SET name = COALESCE($1, name),
-           email = COALESCE($2, email),
-           password = COALESCE($3, password)
-       WHERE id=$4
-       RETURNING id, name, email, created_at`,
-      [name, email, hashedPassword, id]
-    );
-
-    if (result.rows.length === 0) {
+    const updatedUser = await UserModel.updateUser(id, name, email, hashedPassword);
+    if (!updatedUser) {
       const error = new Error("Usuário não encontrado");
       error.statusCode = 404;
       return next(error);
     }
-
-    res.json(result.rows[0]);
+    res.json(updatedUser);
   } catch (err) {
     if (err.code === "23505") {
       const error = new Error("Email já cadastrado");
@@ -77,11 +67,12 @@ export const updateUser = async (req, res, next) => {
   }
 };
 
+// Deletar usuário
 export const deleteUser = async (req, res, next) => {
   const { id } = req.params;
   try {
-    const result = await pool.query("DELETE FROM users WHERE id=$1 RETURNING id", [id]);
-    if (result.rows.length === 0) {
+    const deletedUser = await UserModel.deleteUser(id);
+    if (!deletedUser) {
       const error = new Error("Usuário não encontrado");
       error.statusCode = 404;
       return next(error);
