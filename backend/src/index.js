@@ -1,26 +1,35 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import userRoutes from "./routes/userRoutes.js"; // importa as rotas
+import pool from "./config/db.js";
+import userRoutes from "./routes/userRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import authMiddleware from "./middlewares/authMiddleware.js";
+import errorHandler from "./middlewares/errorHandler.js";
 
 dotenv.config();
-
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middlewares
 app.use(cors());
 app.use(express.json());
 
-// Rotas
-app.use("/api", userRoutes);
-
-// Rota inicial (teste)
-app.get("/", (req, res) => {
-  res.send("API rodando 🚀");
+// Testar conexão
+pool.query("SELECT NOW()", (err, res) => {
+  if (err) console.error("Erro ao conectar no banco:", err);
+  else console.log("Conectado ao banco! Hora atual:", res.rows[0].now);
 });
 
-// Inicia servidor
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
-});
+// Rotas públicas
+app.use("/api/auth", authRoutes);
+
+// Rotas protegidas
+app.use("/api/users", authMiddleware, userRoutes);
+
+// Rota teste
+app.get("/", (req, res) => res.send("API rodando 🚀"));
+
+// Middleware de erros
+app.use(errorHandler);
+
+app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));

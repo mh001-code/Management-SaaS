@@ -1,17 +1,19 @@
-import express from "express";
-import pool from "../config/db.js";
+import { Router } from "express";
+import {
+  getUsers,
+  getUserById,
+  createUser,
+  updateUser,
+  deleteUser,
+} from "../controllers/userController.js";
 
-const router = express.Router();
+const router = Router();
 
-// Exemplo: listar usuários
-router.get("/users", async (req, res) => {
-  try {
-    const result = await pool.query("SELECT * FROM users");
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Erro no servidor");
-  }
-});
+// Rotas CRUD
+router.get("/", getUsers);             // Listar todos usuários
+router.get("/:id", getUserById);      // Listar usuário por ID
+router.post("/", createUser);         // Criar usuário
+router.put("/:id", updateUser);       // Atualizar usuário
+router.delete("/:id", deleteUser);    // Deletar usuário
 
 export default router;
