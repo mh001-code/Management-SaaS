@@ -10,19 +10,34 @@ import productRoutes from "./routes/productRoutes.js";
 import clientsRoutes from "./routes/clientsRoutes.js";
 import ordersRoutes from "./routes/ordersRoutes.js";
 import stockRoutes from "./routes/stockRoutes.js";
+import morgan from "morgan";
+import { swaggerDocs } from "./docs.js";
+import reportsRoutes from "./routes/reportsRoutes.js";
+import logMiddleware from "./middlewares/logMiddleware.js";
+import logRoutes from "./routes/logRoutes.js";
 
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.use(morgan("dev"));
 app.use(cors());
 app.use(express.json());
 
-// Testar conexão
+// Testar conexão com o banco
 pool.query("SELECT NOW()", (err, res) => {
   if (err) console.error("Erro ao conectar no banco:", err);
   else console.log("Conectado ao banco! Hora atual:", res.rows[0].now);
 });
+
+// Swagger
+swaggerDocs(app);
+
+app.use(logMiddleware);
+
+app.use("/api/reports", authMiddleware, reportsRoutes);
+
+app.use("/api/logs", authMiddleware, logRoutes);
 
 // Rotas públicas
 app.use("/api/auth", authRoutes);
@@ -37,7 +52,7 @@ app.use("/api/stock", authMiddleware, stockRoutes);
 // Rota teste
 app.get("/", (req, res) => res.send("API rodando 🚀"));
 
-// Middleware de erros (sempre no final)
+// Middleware de erros
 app.use(errorHandler);
 
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
