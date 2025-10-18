@@ -15,6 +15,8 @@ import { swaggerDocs } from "./docs.js";
 import reportsRoutes from "./routes/reportsRoutes.js";
 import logMiddleware from "./middlewares/logMiddleware.js";
 import logRoutes from "./routes/logRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
+import summaryRoutes from "./routes/summaryRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -23,6 +25,8 @@ const PORT = process.env.PORT || 5000;
 app.use(morgan("dev"));
 app.use(cors());
 app.use(express.json());
+app.use("/api", dashboardRoutes);
+app.use("/api/summary", summaryRoutes);
 
 // Testar conexão com o banco
 pool.query("SELECT NOW()", (err, res) => {

@@ -32,3 +32,37 @@ export const addStock = async (product_id, quantity) => {
   );
   return result.rows[0];
 };
+
+// Buscar estoque de um produto pelo ID
+export const getStockByProductId = async (product_id) => {
+  const result = await pool.query(
+    `SELECT * FROM stock WHERE product_id = $1`,
+    [product_id]
+  );
+  return result.rows[0];
+};
+
+// Decrementar estoque
+export const decrementStock = async (product_id, quantity) => {
+  const result = await pool.query(
+    `UPDATE stock
+     SET quantity = quantity - $1, last_updated = NOW()
+     WHERE product_id = $2 AND quantity >= $1
+     RETURNING *`,
+    [quantity, product_id]
+  );
+  return result.rows[0];
+};
+
+// Incrementar estoque (para cancelamento/devolução, se precisar)
+export const incrementStock = async (product_id, quantity) => {
+  const result = await pool.query(
+    `UPDATE stock
+     SET quantity = quantity + $1, last_updated = NOW()
+     WHERE product_id = $2
+     RETURNING *`,
+    [quantity, product_id]
+  );
+  return result.rows[0];
+};
+

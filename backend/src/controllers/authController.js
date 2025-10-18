@@ -37,21 +37,20 @@ export const login = async (req, res, next) => {
 
 // Registrar usuário
 export const register = async (req, res, next) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email, created_at",
-      [name, email, hashedPassword]
+      "INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role, created_at",
+      [name, email, hashedPassword, role || 'user']
     );
 
     const newUser = result.rows[0];
 
-    // Opcional: criar token logo após registro
     const token = jwt.sign(
-      { userId: newUser.id, email: newUser.email },
+      { userId: newUser.id, email: newUser.email, role: newUser.role },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -64,3 +63,4 @@ export const register = async (req, res, next) => {
     next(err);
   }
 };
+

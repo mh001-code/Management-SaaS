@@ -16,7 +16,7 @@ export const getOrderById = async (id) => {
   return result.rows[0];
 };
 
-export const createOrder = async (clientId, userId, total, status) => {
+export const createOrder = async (clientId, userId, total, status = "Pendente") => {
   const result = await pool.query(
     "INSERT INTO orders (client_id, user_id, total, status) VALUES ($1, $2, $3, $4) RETURNING id, client_id, user_id, total, status, created_at",
     [clientId, userId, total, status]
