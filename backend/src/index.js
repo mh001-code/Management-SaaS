@@ -9,7 +9,6 @@ import errorHandler from "./middlewares/errorHandler.js";
 import productRoutes from "./routes/productRoutes.js";
 import clientsRoutes from "./routes/clientsRoutes.js";
 import ordersRoutes from "./routes/ordersRoutes.js";
-import stockRoutes from "./routes/stockRoutes.js";
 import morgan from "morgan";
 import { swaggerDocs } from "./docs.js";
 import reportsRoutes from "./routes/reportsRoutes.js";
@@ -51,7 +50,6 @@ app.use("/api/users", authMiddleware, userRoutes);
 app.use("/api/products", authMiddleware, productRoutes);
 app.use("/api/clients", authMiddleware, clientsRoutes);
 app.use("/api/orders", authMiddleware, ordersRoutes);
-app.use("/api/stock", authMiddleware, stockRoutes);
 
 // Rota teste
 app.get("/", (req, res) => res.send("API rodando 🚀"));

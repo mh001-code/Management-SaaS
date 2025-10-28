@@ -1,7 +1,7 @@
-// backend/src/controllers/ordersController.js
 import * as OrderModel from "../models/OrderModel.js";
 import * as OrderItemModel from "../models/OrderItemModel.js";
-import * as StockModel from "../models/StockModel.js";
+import * as StockModel from "../models/StockModel.js"; // tabela de movimentações
+import * as ProductModel from "../models/ProductModel.js";
 
 // Criar pedido
 export const createOrder = async (req, res, next) => {
@@ -9,64 +9,69 @@ export const createOrder = async (req, res, next) => {
   const userId = req.user.userId;
 
   if (!clientId || !items?.length) {
-    const error = new Error("Cliente e itens são obrigatórios");
-    error.statusCode = 400;
-    return next(error);
+    return res.status(400).json({ error: "Cliente e itens são obrigatórios" });
   }
 
+  let client;
   try {
-    await OrderModel.beginTransaction();
+    client = await OrderModel.beginTransaction();
+    OrderItemModel.setTransactionClient(client);
 
-    // Validar estoque e calcular total
     let total = 0;
+
+    // 1️⃣ Verifica estoque atual
     for (const item of items) {
-      const stock = await StockModel.getStockByProductId(item.product_id);
+      const productId = Number(item.product_id);
+      const quantity = Number(item.quantity);
 
-      if (!stock) throw new Error(`Produto ${item.product_id} não existe no estoque`);
-      if (stock.quantity < item.quantity)
-        throw new Error(`Estoque insuficiente para o produto ${item.product_id}`);
+      const stock = await StockModel.getCurrentStock(productId);
+      if (stock < quantity) throw new Error(`Estoque insuficiente para o produto ${productId}`);
 
-      total += item.price * item.quantity;
+      total += item.price * quantity;
     }
 
-    // Criar pedido
-    const order = await OrderModel.createOrder(clientId, userId, total);
+    // 2️⃣ Cria pedido
+    const order = await OrderModel.createOrder(Number(clientId), userId, total);
 
-    // Criar itens do pedido e atualizar estoque
+    // 3️⃣ Cria itens e registra saída no estoque
     for (const item of items) {
-      await OrderItemModel.createOrderItem(order.id, item.product_id, item.quantity, item.price);
-      await StockModel.decrementStock(item.product_id, item.quantity);
+      const productId = Number(item.product_id);
+      const quantity = Number(item.quantity);
+      const price = Number(item.price);
+
+      await OrderItemModel.createOrderItem(order.id, productId, quantity, price);
+
+      await StockModel.addStockMovement({
+        product_id: productId,
+        quantity: -quantity,
+        type: "out",
+        reference_id: order.id
+      });
     }
 
     await OrderModel.commitTransaction();
-
     res.status(201).json({ order, items });
   } catch (err) {
-    await OrderModel.rollbackTransaction();
+    if (client) await OrderModel.rollbackTransaction();
     next(err);
   }
 };
 
-// Listar todos pedidos
+// Listar pedidos
 export const getOrders = async (req, res, next) => {
   try {
-    const orders = await OrderModel.getAllOrders();
+    const orders = await OrderModel.getAllOrdersWithDetails();
     res.json(orders);
   } catch (err) {
     next(err);
   }
 };
 
-// Buscar pedido por ID (com itens)
+// Buscar pedido por ID
 export const getOrderById = async (req, res, next) => {
   try {
     const order = await OrderModel.getOrderById(req.params.id);
-
-    if (!order) {
-      const error = new Error("Pedido não encontrado");
-      error.statusCode = 404;
-      return next(error);
-    }
+    if (!order) return res.status(404).json({ message: "Pedido não encontrado" });
 
     const items = await OrderItemModel.getItemsByOrderId(order.id);
     order.items = items;
@@ -81,13 +86,7 @@ export const getOrderById = async (req, res, next) => {
 export const updateOrder = async (req, res, next) => {
   try {
     const updatedOrder = await OrderModel.updateOrderStatus(req.params.id, req.body.status);
-
-    if (!updatedOrder) {
-      const error = new Error("Pedido não encontrado");
-      error.statusCode = 404;
-      return next(error);
-    }
-
+    if (!updatedOrder) return res.status(404).json({ message: "Pedido não encontrado" });
     res.json(updatedOrder);
   } catch (err) {
     next(err);
@@ -98,13 +97,7 @@ export const updateOrder = async (req, res, next) => {
 export const deleteOrder = async (req, res, next) => {
   try {
     const deletedOrder = await OrderModel.deleteOrder(req.params.id);
-
-    if (!deletedOrder) {
-      const error = new Error("Pedido não encontrado");
-      error.statusCode = 404;
-      return next(error);
-    }
-
+    if (!deletedOrder) return res.status(404).json({ message: "Pedido não encontrado" });
     res.json({ message: "Pedido deletado com sucesso" });
   } catch (err) {
     next(err);

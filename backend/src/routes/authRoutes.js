@@ -69,12 +69,12 @@
 
 import { Router } from "express";
 import { login, register } from "../controllers/authController.js";
-import { validateUser } from "../middlewares/validateUser.js";
+import { validateUserCreation } from "../middlewares/validateUser.js";
 
 const router = Router();
 
 // Rota pública para registrar usuário com validação
-router.post("/register", validateUser, register);
+router.post("/register", validateUserCreation, register);
 
 // Rota pública de login
 router.post("/login", login);

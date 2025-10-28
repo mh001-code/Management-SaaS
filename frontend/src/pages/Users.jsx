@@ -1,50 +1,82 @@
 import React, { useEffect, useState } from "react";
-import api from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
+import { getAllUsers, createUser, updateUser, deleteUser } from "../services/userService";
+import UserForm from "../components/UserForm";
+import UserTable from "../components/UserTable";
 
 const Users = () => {
+  const { user } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [editingUser, setEditingUser] = useState(null);
 
   const fetchUsers = async () => {
+    setLoading(true);
+    setError("");
     try {
-      const res = await api.get("/users", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
+      const res = await getAllUsers();
       setUsers(res.data);
     } catch (err) {
-      console.error("Erro ao buscar usuários:", err);
+      setError("Falha ao carregar usuários");
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (user?.role === "admin") fetchUsers();
+    else setError("Você não tem permissão para acessar esta página.");
+  }, [user]);
 
-  if (loading) return <div>Carregando...</div>;
+  const handleSave = async (userData) => {
+    try {
+      const { id, ...payload } = editingUser ? { ...userData, id: editingUser.id } : userData;
+      if (editingUser) await updateUser(editingUser.id, payload);
+      else await createUser(payload);
+      setEditingUser(null);
+      fetchUsers();
+    } catch (err) {
+      console.error(err);
+      setError("Erro ao salvar usuário");
+    }
+  };
+
+  const handleEdit = (u) => setEditingUser(u);
+  const handleCancel = () => setEditingUser(null);
+  const handleDelete = async (id) => {
+    if (!window.confirm("Deseja realmente deletar este usuário?")) return;
+    try {
+      await deleteUser(id);
+      fetchUsers();
+    } catch (err) {
+      console.error(err);
+      setError("Erro ao deletar usuário");
+    }
+  };
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Usuários</h1>
-      <table className="w-full bg-white rounded shadow">
-        <thead className="bg-gray-200">
-          <tr>
-            <th className="p-2 text-left">Nome</th>
-            <th className="p-2 text-left">Email</th>
-            <th className="p-2 text-left">Tipo</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((u) => (
-            <tr key={u.id} className="border-b">
-              <td className="p-2">{u.name}</td>
-              <td className="p-2">{u.email}</td>
-              <td className="p-2">{u.role}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="p-6 max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6 text-center">Gerenciar Usuários</h1>
+
+      <UserForm
+        userToEdit={editingUser}
+        onSave={handleSave}
+        onCancel={handleCancel}
+      />
+
+      {loading ? (
+        <div className="text-center">Carregando...</div>
+      ) : error ? (
+        <div className="text-center text-red-500 font-semibold">{error}</div>
+      ) : (
+        <UserTable
+          users={users}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      )}
     </div>
   );
 };

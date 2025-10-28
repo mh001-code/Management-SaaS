@@ -11,11 +11,18 @@ export const AuthProvider = ({ children }) => {
   });
 
   const login = async (email, password) => {
+    console.log("[FRONT] Tentando login com:", email); // 🔹 log
     const res = await api.post("/auth/login", { email, password });
+    console.log("[FRONT] Resposta do backend:", res.data); // 🔹 log
+
     const { token, user } = res.data;
+
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
     setUser(user);
+
+    console.log("[FRONT] Usuário salvo no state e localStorage:", user); // 🔹 log
+
     navigate("/dashboard");
   };
 

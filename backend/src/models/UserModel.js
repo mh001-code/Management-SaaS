@@ -23,19 +23,64 @@ export const createUser = async (name, email, hashedPassword, role = 'user') => 
   return result.rows[0];
 };
 
-export const updateUser = async (id, name, email, hashedPassword, role) => {
-  const result = await pool.query(
-    `UPDATE users
-     SET name = COALESCE($1, name),
-         email = COALESCE($2, email),
-         password = COALESCE($3, password),
-         role = COALESCE($4, role)
-     WHERE id=$5
-     RETURNING id, name, email, role, created_at`,
-    [name, email, hashedPassword, role, id]
-  );
-  return result.rows[0];
+export const updateUser = async (id, name, email, password, role) => {
+  try {
+    console.log("\n[UPDATE USER] Iniciando atualização...");
+    console.log("[UPDATE USER] Parâmetros recebidos:", { id, name, email, password, role });
+
+    const fields = [];
+    const values = [];
+    let idx = 1;
+
+    if (typeof name !== "undefined" && name.trim() !== "") {
+      fields.push(`name=$${idx++}`);
+      values.push(name);
+    }
+
+    if (typeof email !== "undefined" && email.trim() !== "") {
+      fields.push(`email=$${idx++}`);
+      values.push(email);
+    }
+
+    if (typeof password !== "undefined" && password.trim() !== "") {
+      fields.push(`password=$${idx++}`);
+      values.push(password);
+    }
+
+    if (typeof role !== "undefined" && role.trim() !== "") {
+      fields.push(`role=$${idx++}`);
+      values.push(role);
+    }
+
+    if (fields.length === 0) {
+      console.warn("[UPDATE USER] Nenhum campo alterado, retornando usuário atual.");
+      const { rows } = await pool.query(
+        "SELECT id, name, email, role FROM users WHERE id=$1",
+        [id]
+      );
+      return rows[0];
+    }
+
+    const query = `UPDATE users SET ${fields.join(", ")} WHERE id=$${idx} RETURNING id, name, email, role`;
+    values.push(id);
+
+    console.log("[UPDATE USER] Query gerada:", query);
+    console.log("[UPDATE USER] Valores enviados:", values);
+
+    const result = await pool.query(query, values);
+
+    console.log("[UPDATE USER] Resultado do banco:", result.rows[0]);
+    return result.rows[0];
+  } catch (err) {
+    console.error("[UPDATE USER] ERRO SQL DETALHADO:");
+    console.error("→ Mensagem:", err.message);
+    console.error("→ Código:", err.code);
+    console.error("→ Detalhe:", err.detail);
+    console.error("→ Stack:", err.stack);
+    throw err;
+  }
 };
+
 
 export const deleteUser = async (id) => {
   const result = await pool.query(

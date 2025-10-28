@@ -1,18 +1,22 @@
 import React, { useEffect, useState } from "react";
+import OrderForm from "../components/OrderForm";
+import OrderTable from "../components/OrderTable";
 import api from "../services/api";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editingOrder, setEditingOrder] = useState(null);
 
   const fetchOrders = async () => {
     try {
+      const token = localStorage.getItem("token");
       const res = await api.get("/orders", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setOrders(res.data);
     } catch (err) {
-      console.error("Erro ao buscar pedidos:", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -22,31 +26,21 @@ const Orders = () => {
     fetchOrders();
   }, []);
 
-  if (loading) return <div>Carregando...</div>;
-
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Pedidos</h1>
-      <table className="w-full bg-white rounded shadow">
-        <thead className="bg-gray-200">
-          <tr>
-            <th className="p-2 text-left">Cliente</th>
-            <th className="p-2 text-left">Produto</th>
-            <th className="p-2 text-left">Quantidade</th>
-            <th className="p-2 text-left">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {orders.map((o) => (
-            <tr key={o.id} className="border-b">
-              <td className="p-2">{o.client}</td>
-              <td className="p-2">{o.product}</td>
-              <td className="p-2">{o.quantity}</td>
-              <td className="p-2">{o.status}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="p-6 max-w-5xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6 text-center">Gerenciar Pedidos</h1>
+
+      <OrderForm onOrderCreated={fetchOrders} />
+
+      {loading ? (
+        <div>Carregando...</div>
+      ) : (
+        <OrderTable
+          orders={orders}
+          setEditingOrder={setEditingOrder}
+          fetchOrders={fetchOrders}
+        />
+      )}
     </div>
   );
 };

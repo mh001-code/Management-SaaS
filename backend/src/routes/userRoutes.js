@@ -97,21 +97,23 @@ import {
   deleteUser,
 } from "../controllers/userController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
-import { validateUser } from "../middlewares/validateUser.js";
+import { validateUserCreation, validateUserUpdate } from "../middlewares/validateUser.js";
 import checkRole from "../middlewares/checkRole.js";
 
 const router = Router();
 
 // 🔓 Rotas públicas
-router.post("/register", validateUser, registerUser);
+router.post("/register", validateUserCreation, registerUser);
 router.post("/login", loginUser);
 
 // 🔒 Rotas protegidas por JWT
 router.use(authMiddleware);
 
-router.get("/", checkRole(["admin"]), getUsers);       // Somente admin
-router.get("/:id", getUserById);                       // Atualizado para lógica de acesso no controller
-router.put("/:id", checkRole(["admin"]), validateUser, updateUser);
+// Rotas de administração
+router.get("/", checkRole(["admin"]), getUsers);
+router.get("/:id", getUserById);
+router.post("/", checkRole(["admin"]), validateUserCreation, registerUser); // CRIAR USUÁRIO
+router.put("/:id", checkRole(["admin"]), validateUserUpdate, updateUser);
 router.delete("/:id", checkRole(["admin"]), deleteUser);
 
 export default router;

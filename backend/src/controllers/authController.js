@@ -5,32 +5,39 @@ import jwt from "jsonwebtoken";
 // Login de usuário
 export const login = async (req, res, next) => {
   const { email, password } = req.body;
+  console.log("[LOGIN] Iniciando login para:", email); // 🔹 log
 
   try {
     const result = await pool.query("SELECT * FROM users WHERE email=$1", [email]);
     if (result.rows.length === 0) {
+      console.log("[LOGIN] Usuário não encontrado");
       const error = new Error("Email ou senha incorretos");
       error.statusCode = 401;
       return next(error);
     }
 
     const user = result.rows[0];
+    console.log("[LOGIN] Usuário encontrado:", user.email, "Role:", user.role); // 🔹 log
 
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
+      console.log("[LOGIN] Senha incorreta");
       const error = new Error("Email ou senha incorretos");
       error.statusCode = 401;
       return next(error);
     }
 
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { userId: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
+    console.log("[LOGIN] Token criado:", token); // 🔹 log
+
+    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
   } catch (err) {
+    console.error("[LOGIN] Erro:", err); // 🔹 log
     next(err);
   }
 };

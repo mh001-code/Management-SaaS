@@ -1,64 +1,21 @@
-// backend/src/models/StockModel.js
 import pool from "../config/db.js";
 
-// Listar estoque de todos produtos
-export const getAllStock = async () => {
+// Obter estoque atual
+export const getCurrentStock = async (product_id) => {
   const result = await pool.query(
-    `SELECT s.id, s.product_id, p.name as product_name, s.quantity, s.last_updated
-     FROM stock s
-     JOIN products p ON s.product_id = p.id
-     ORDER BY s.id`
+    `SELECT COALESCE(quantity, 0) AS stock_quantity
+     FROM stock
+     WHERE product_id = $1`,
+    [product_id]
   );
-  return result.rows;
+  return result.rows[0]?.stock_quantity || 0;
 };
 
-// Atualizar estoque de um produto (entrada ou ajuste manual)
+// Atualizar estoque (entrada ou saída)
 export const updateStock = async (product_id, quantity) => {
   const result = await pool.query(
     `UPDATE stock
-     SET quantity=$1, last_updated=NOW()
-     WHERE product_id=$2
-     RETURNING *`,
-    [quantity, product_id]
-  );
-  return result.rows[0]; // undefined se não encontrar
-};
-
-// Adicionar novo produto ao estoque
-export const addStock = async (product_id, quantity) => {
-  const result = await pool.query(
-    `INSERT INTO stock (product_id, quantity) VALUES ($1, $2) RETURNING *`,
-    [product_id, quantity]
-  );
-  return result.rows[0];
-};
-
-// Buscar estoque de um produto pelo ID
-export const getStockByProductId = async (product_id) => {
-  const result = await pool.query(
-    `SELECT * FROM stock WHERE product_id = $1`,
-    [product_id]
-  );
-  return result.rows[0];
-};
-
-// Decrementar estoque
-export const decrementStock = async (product_id, quantity) => {
-  const result = await pool.query(
-    `UPDATE stock
-     SET quantity = quantity - $1, last_updated = NOW()
-     WHERE product_id = $2 AND quantity >= $1
-     RETURNING *`,
-    [quantity, product_id]
-  );
-  return result.rows[0];
-};
-
-// Incrementar estoque (para cancelamento/devolução, se precisar)
-export const incrementStock = async (product_id, quantity) => {
-  const result = await pool.query(
-    `UPDATE stock
-     SET quantity = quantity + $1, last_updated = NOW()
+     SET quantity = $1, last_updated = NOW()
      WHERE product_id = $2
      RETURNING *`,
     [quantity, product_id]
@@ -66,3 +23,48 @@ export const incrementStock = async (product_id, quantity) => {
   return result.rows[0];
 };
 
+export const decrementStock = async (productId, quantity) => {
+  const res = await pool.query(
+    `UPDATE stock
+     SET quantity = quantity - $1, last_updated = NOW()
+     WHERE product_id = $2 AND quantity >= $1
+     RETURNING *`,
+    [quantity, productId]
+  );
+  console.log("🔻 Estoque decrementado:", res.rows[0]);
+  return res.rows[0];
+};
+
+// Criar registro de estoque para novo produto
+export const addStock = async (product_id, quantity = 0) => {
+  const result = await pool.query(
+    `INSERT INTO stock (product_id, quantity) VALUES ($1, $2) RETURNING *`,
+    [product_id, quantity]
+  );
+  return result.rows[0];
+};
+
+// backend/src/models/StockModel.js
+export const upsertStock = async (product_id, quantity) => {
+  const existing = await pool.query(
+    `SELECT * FROM stock WHERE product_id = $1`,
+    [product_id]
+  );
+
+  if (existing.rows.length > 0) {
+    const updated = await pool.query(
+      `UPDATE stock
+       SET quantity = $1, last_updated = NOW()
+       WHERE product_id = $2
+       RETURNING *`,
+      [quantity, product_id]
+    );
+    return updated.rows[0];
+  } else {
+    const inserted = await pool.query(
+      `INSERT INTO stock (product_id, quantity) VALUES ($1, $2) RETURNING *`,
+      [product_id, quantity]
+    );
+    return inserted.rows[0];
+  }
+};
