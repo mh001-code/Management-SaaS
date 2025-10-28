@@ -27,13 +27,16 @@ const UserForm = ({ userToEdit, onSave, onCancel }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow mb-6">
-      <h2 className="text-lg font-semibold mb-4">
+    <form
+      onSubmit={handleSubmit}
+      className="mb-6 p-4 md:p-6 bg-white rounded shadow grid grid-cols-1 sm:grid-cols-2 gap-4"
+    >
+      <h2 className="text-lg font-semibold sm:col-span-2">
         {userToEdit ? "Editar Usuário" : "Criar Usuário"}
       </h2>
 
-      <div className="mb-2">
-        <label className="block mb-1">Nome:</label>
+      <div className="flex flex-col">
+        <label className="font-medium mb-1">Nome:</label>
         <input
           type="text"
           value={name}
@@ -43,8 +46,8 @@ const UserForm = ({ userToEdit, onSave, onCancel }) => {
         />
       </div>
 
-      <div className="mb-2">
-        <label className="block mb-1">Email:</label>
+      <div className="flex flex-col">
+        <label className="font-medium mb-1">Email:</label>
         <input
           type="email"
           value={email}
@@ -54,8 +57,8 @@ const UserForm = ({ userToEdit, onSave, onCancel }) => {
         />
       </div>
 
-      <div className="mb-2">
-        <label className="block mb-1">Senha:</label>
+      <div className="flex flex-col">
+        <label className="font-medium mb-1">Senha:</label>
         <input
           type="password"
           value={password}
@@ -66,8 +69,8 @@ const UserForm = ({ userToEdit, onSave, onCancel }) => {
         />
       </div>
 
-      <div className="mb-4">
-        <label className="block mb-1">Função:</label>
+      <div className="flex flex-col">
+        <label className="font-medium mb-1">Função:</label>
         <select
           value={role}
           onChange={(e) => setRole(e.target.value)}
@@ -78,10 +81,10 @@ const UserForm = ({ userToEdit, onSave, onCancel }) => {
         </select>
       </div>
 
-      <div className="flex gap-2">
+      <div className="sm:col-span-2 flex flex-col sm:flex-row gap-2 justify-end">
         <button
           type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full sm:w-auto"
         >
           {userToEdit ? "Atualizar" : "Criar"}
         </button>
@@ -89,7 +92,7 @@ const UserForm = ({ userToEdit, onSave, onCancel }) => {
           <button
             type="button"
             onClick={onCancel}
-            className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+            className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 w-full sm:w-auto"
           >
             Cancelar
           </button>

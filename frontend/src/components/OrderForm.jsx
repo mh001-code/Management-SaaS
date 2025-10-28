@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../services/api";
 
-const OrderForm = ({ onOrderCreated }) => {
+const OrderForm = ({ onOrderCreated, editingOrder, onCancel }) => {
   const [clients, setClients] = useState([]);
   const [products, setProducts] = useState([]);
   const [items, setItems] = useState([]);
@@ -26,6 +26,16 @@ const OrderForm = ({ onOrderCreated }) => {
     fetchClients();
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    if (editingOrder) {
+      setSelectedClientId(editingOrder.client_id);
+      setItems(editingOrder.items);
+    } else {
+      setSelectedClientId("");
+      setItems([]);
+    }
+  }, [editingOrder]);
 
   const handleAddItem = () => {
     if (!selectedProduct || quantity <= 0) return;
@@ -53,28 +63,40 @@ const OrderForm = ({ onOrderCreated }) => {
       return alert("Cliente e itens são obrigatórios");
 
     try {
-      const res = await api.post(
-        "/orders",
-        { client_id: Number(selectedClientId), items },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-      );
-      onOrderCreated(res.data);
+      if (editingOrder) {
+        await api.put(
+          `/orders/${editingOrder.order_id}`,
+          { client_id: Number(selectedClientId), items },
+          { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        );
+        onCancel();
+      } else {
+        await api.post(
+          "/orders",
+          { client_id: Number(selectedClientId), items },
+          { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        );
+      }
+
       setItems([]);
       setSelectedClientId("");
+      onOrderCreated();
     } catch (err) {
-      console.error("Erro ao criar pedido:", err);
+      console.error("Erro ao salvar pedido:", err);
     }
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="p-4 bg-white rounded shadow space-y-4 mb-6"
+      className="mb-6 p-4 md:p-6 bg-white rounded shadow grid grid-cols-1 sm:grid-cols-2 gap-4"
     >
-      <h2 className="text-lg font-semibold">{onOrderCreated ? "Lançar Pedido" : "Alterar Pedido"}</h2>
-      {/* Seleção do Cliente */}
-      <div>
-        <label className="block font-medium mb-1">Cliente</label>
+      <h2 className="text-lg font-semibold sm:col-span-2">
+        {editingOrder ? "Alterar Pedido" : "Lançar Pedido"}
+      </h2>
+
+      <div className="flex flex-col sm:col-span-2">
+        <label className="font-medium mb-1">Cliente</label>
         <select
           value={selectedClientId}
           onChange={(e) => setSelectedClientId(e.target.value)}
@@ -90,10 +112,9 @@ const OrderForm = ({ onOrderCreated }) => {
         </select>
       </div>
 
-      {/* Seleção de Produto */}
-      <div className="flex flex-col md:flex-row gap-2 items-end">
+      <div className="flex flex-col md:flex-row gap-2 sm:col-span-2 items-end">
         <div className="flex-1">
-          <label className="block font-medium mb-1">Produto</label>
+          <label className="font-medium mb-1">Produto</label>
           <select
             value={selectedProduct}
             onChange={(e) => setSelectedProduct(e.target.value)}
@@ -109,7 +130,7 @@ const OrderForm = ({ onOrderCreated }) => {
         </div>
 
         <div className="w-24">
-          <label className="block font-medium mb-1">Qtd</label>
+          <label className="font-medium mb-1">Qtd</label>
           <input
             type="number"
             min="1"
@@ -128,48 +149,60 @@ const OrderForm = ({ onOrderCreated }) => {
         </button>
       </div>
 
-      {/* Tabela de itens */}
       {items.length > 0 && (
-        <table className="w-full border-collapse border mt-4">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="px-4 py-2">Produto</th>
-              <th className="px-4 py-2">Qtd</th>
-              <th className="px-4 py-2">Preço</th>
-              <th className="px-4 py-2">Total</th>
-              <th className="px-4 py-2">Remover</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, i) => (
-              <tr key={i} className="border-b hover:bg-gray-50">
-                <td className="px-4 py-2">{item.name}</td>
-                <td className="px-4 py-2">{item.quantity}</td>
-                <td className="px-4 py-2">R${item.price.toFixed(2)}</td>
-                <td className="px-4 py-2">
-                  R${(item.price * item.quantity).toFixed(2)}
-                </td>
-                <td className="px-4 py-2">
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveItem(i)}
-                    className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition"
-                  >
-                    X
-                  </button>
-                </td>
+        <div className="sm:col-span-2 overflow-x-auto">
+          <table className="w-full border-collapse border mt-4 bg-white">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-4 py-2">Produto</th>
+                <th className="px-4 py-2">Qtd</th>
+                <th className="px-4 py-2">Preço</th>
+                <th className="px-4 py-2">Total</th>
+                <th className="px-4 py-2">Remover</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {items.map((item, i) => (
+                <tr key={i} className="border-b hover:bg-gray-50">
+                  <td className="px-4 py-2">{item.name}</td>
+                  <td className="px-4 py-2">{item.quantity}</td>
+                  <td className="px-4 py-2">R${item.price.toFixed(2)}</td>
+                  <td className="px-4 py-2">R${(item.price * item.quantity).toFixed(2)}</td>
+                  <td className="px-4 py-2">
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveItem(i)}
+                      className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition"
+                    >
+                      X
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
-      <button
-        type="submit"
-        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
-      >
-        Criar Pedido
-      </button>
+      <div className="sm:col-span-2 flex gap-2 justify-end">
+        <button
+          type="submit"
+          className={`${
+            editingOrder ? "bg-yellow-500 hover:bg-yellow-600" : "bg-green-500 hover:bg-green-600"
+          } text-white px-4 py-2 rounded transition w-full sm:w-auto`}
+        >
+          {editingOrder ? "Atualizar Pedido" : "Criar Pedido"}
+        </button>
+        {editingOrder && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 w-full sm:w-auto"
+          >
+            Cancelar
+          </button>
+        )}
+      </div>
     </form>
   );
 };

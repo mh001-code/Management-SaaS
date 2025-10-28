@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { getAllUsers, createUser, updateUser, deleteUser } from "../services/userService";
 import UserForm from "../components/UserForm";
@@ -10,6 +10,9 @@ const Users = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingUser, setEditingUser] = useState(null);
+
+  // Referência para o formulário
+  const formRef = useRef(null);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -43,8 +46,16 @@ const Users = () => {
     }
   };
 
-  const handleEdit = (u) => setEditingUser(u);
+  const handleEdit = (u) => {
+    setEditingUser(u);
+    // Scroll para o formulário
+    if (formRef.current) {
+      formRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   const handleCancel = () => setEditingUser(null);
+
   const handleDelete = async (id) => {
     if (!window.confirm("Deseja realmente deletar este usuário?")) return;
     try {
@@ -57,19 +68,25 @@ const Users = () => {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-center">Gerenciar Usuários</h1>
+    <div className="p-4 md:p-6 bg-gray-100 min-h-screen max-w-full md:max-w-6xl mx-auto">
+      <h1 className="text-2xl md:text-3xl font-bold mb-6 text-center">
+        Gerenciar Usuários
+      </h1>
 
-      <UserForm
-        userToEdit={editingUser}
-        onSave={handleSave}
-        onCancel={handleCancel}
-      />
+      <div ref={formRef}>
+        <UserForm
+          userToEdit={editingUser}
+          onSave={handleSave}
+          onCancel={handleCancel}
+        />
+      </div>
 
       {loading ? (
-        <div className="text-center">Carregando...</div>
+        <div className="flex justify-center items-center py-10">
+          <div className="w-10 h-10 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+        </div>
       ) : error ? (
-        <div className="text-center text-red-500 font-semibold">{error}</div>
+        <div className="text-center text-red-500 font-semibold py-6">{error}</div>
       ) : (
         <UserTable
           users={users}

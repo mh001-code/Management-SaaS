@@ -39,56 +39,66 @@ const ProductForm = ({ productToEdit, onSave, onCancel }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mb-6 p-4 bg-white rounded shadow space-y-4">
-      <h2 className="text-lg font-semibold">{productToEdit ? "Editar Produto" : "Adicionar Produto"}</h2>
-      <div>
-        <label className="block font-medium mb-1">Nome</label>
+    <form
+      onSubmit={handleSubmit}
+      className="mb-6 p-4 md:p-6 bg-white rounded shadow grid grid-cols-1 sm:grid-cols-2 gap-4"
+    >
+      <h2 className="text-lg font-semibold sm:col-span-2">
+        {productToEdit ? "Editar Produto" : "Adicionar Produto"}
+      </h2>
+
+      <div className="flex flex-col">
+        <label className="font-medium mb-1">Nome</label>
         <input
           type="text"
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
-          className="w-full p-2 border rounded"
+          className="border p-2 rounded w-full"
         />
-        {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+        {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
       </div>
 
-      <div>
-        <label className="block font-medium mb-1">Preço</label>
+      <div className="flex flex-col">
+        <label className="font-medium mb-1">Preço</label>
         <input
           type="number"
           value={form.price}
           onChange={(e) => setForm({ ...form, price: e.target.value })}
-          className="w-full p-2 border rounded"
+          className="border p-2 rounded w-full"
         />
-        {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
+        {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
       </div>
 
-      <div>
-        <label className="block font-medium mb-1">Estoque</label>
+      <div className="flex flex-col">
+        <label className="font-medium mb-1">Estoque</label>
         <input
           type="number"
           value={form.stock_quantity}
           onChange={(e) => setForm({ ...form, stock_quantity: e.target.value })}
-          className="w-full p-2 border rounded"
+          className="border p-2 rounded w-full"
         />
-        {errors.stock_quantity && <p className="text-red-500 text-sm">{errors.stock_quantity}</p>}
+        {errors.stock_quantity && <p className="text-red-500 text-sm mt-1">{errors.stock_quantity}</p>}
       </div>
 
-      <div>
-        <label className="block font-medium mb-1">Descrição</label>
+      <div className="flex flex-col sm:col-span-2">
+        <label className="font-medium mb-1">Descrição</label>
         <textarea
           value={form.description}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
-          className="w-full p-2 border rounded"
+          className="border p-2 rounded w-full"
         />
       </div>
 
-      <div className="flex gap-2">
-        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+      <div className="sm:col-span-2 flex flex-col sm:flex-row gap-2 justify-end">
+        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full sm:w-auto">
           {productToEdit ? "Atualizar" : "Criar"}
         </button>
         {productToEdit && (
-          <button type="button" onClick={handleCancel} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 w-full sm:w-auto"
+          >
             Cancelar
           </button>
         )}

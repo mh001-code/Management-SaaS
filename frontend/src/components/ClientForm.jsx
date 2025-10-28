@@ -52,40 +52,48 @@ const ClientForm = ({ editingClient, setEditingClient, fetchClients }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow mb-6 space-y-4">
-      <h2 className="text-lg font-semibold">{editingClient ? "Editar Cliente" : "Adicionar Cliente"}</h2>
-
-      <div>
-        <label className="block font-medium mb-1">Nome</label>
+    <form
+      className="bg-white p-4 md:p-6 rounded shadow mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full"
+      onSubmit={handleSubmit}
+    >
+      <div className="flex flex-col">
+        <label className="font-medium mb-1">Nome</label>
         <input
           type="text"
-          className="w-full p-2 border rounded"
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
+          className="border p-2 rounded focus:ring-2 focus:ring-blue-400 transition w-full"
         />
-        {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+        {errors.name && (
+          <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+        )}
       </div>
 
-      <div>
-        <label className="block font-medium mb-1">Email</label>
+      <div className="flex flex-col">
+        <label className="font-medium mb-1">Email</label>
         <input
           type="email"
-          className="w-full p-2 border rounded"
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
+          className="border p-2 rounded focus:ring-2 focus:ring-blue-400 transition w-full"
         />
-        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+        {errors.email && (
+          <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+        )}
       </div>
 
-      <div className="flex gap-2">
-        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+      <div className="sm:col-span-2 flex flex-col sm:flex-row gap-2 justify-end">
+        <button
+          type="submit"
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition w-full sm:w-auto"
+        >
           {editingClient ? "Atualizar" : "Adicionar"}
         </button>
         {editingClient && (
           <button
             type="button"
             onClick={handleCancel}
-            className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+            className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 transition w-full sm:w-auto"
           >
             Cancelar
           </button>
