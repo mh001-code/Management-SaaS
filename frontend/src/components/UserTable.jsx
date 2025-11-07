@@ -1,11 +1,34 @@
 import React from "react";
+import TableContainer from "./TableContainer";
+import CardTable from "./CardTable";
 
 const UserTable = ({ users, onEdit, onDelete }) => {
+  const renderMobileRow = (user) => (
+    <>
+      <p><span className="font-medium">Nome:</span> {user.name}</p>
+      <p><span className="font-medium">Email:</span> {user.email}</p>
+      <p><span className="font-medium">Função:</span> {user.role}</p>
+      <div className="flex gap-2 mt-2">
+        <button
+          className="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500 transition flex-1"
+          onClick={() => onEdit(user)}
+        >
+          Editar
+        </button>
+        <button
+          className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition flex-1"
+          onClick={() => onDelete(user.id)}
+        >
+          Deletar
+        </button>
+      </div>
+    </>
+  );
+
   return (
-    <div className="w-full">
-      {/* Desktop Table */}
-      <div className="hidden md:block overflow-x-auto w-full">
-        <table className="w-full border-collapse bg-white shadow rounded">
+    <>
+      <TableContainer>
+        <table className="hidden md:table w-full border-collapse bg-white shadow rounded">
           <thead className="bg-gray-100">
             <tr>
               <th className="border px-4 py-2">Nome</th>
@@ -38,39 +61,10 @@ const UserTable = ({ users, onEdit, onDelete }) => {
             ))}
           </tbody>
         </table>
-      </div>
+      </TableContainer>
 
-      {/* Mobile Cards */}
-      <div className="md:hidden flex flex-col gap-4">
-        {users.map((u) => (
-          <div key={u.id} className="bg-white shadow rounded p-4 flex flex-col gap-2">
-            <p>
-              <span className="font-medium">Nome:</span> {u.name}
-            </p>
-            <p>
-              <span className="font-medium">Email:</span> {u.email}
-            </p>
-            <p>
-              <span className="font-medium">Função:</span> {u.role}
-            </p>
-            <div className="flex gap-2 mt-2">
-              <button
-                className="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500 transition flex-1"
-                onClick={() => onEdit(u)}
-              >
-                Editar
-              </button>
-              <button
-                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition flex-1"
-                onClick={() => onDelete(u.id)}
-              >
-                Deletar
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+      <CardTable data={users} renderRow={renderMobileRow} emptyMessage="Nenhum usuário encontrado." />
+    </>
   );
 };
 

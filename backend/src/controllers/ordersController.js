@@ -41,12 +41,7 @@ export const createOrder = async (req, res, next) => {
 
       await OrderItemModel.createOrderItem(order.id, productId, quantity, price);
 
-      await StockModel.addStockMovement({
-        product_id: productId,
-        quantity: -quantity,
-        type: "out",
-        reference_id: order.id
-      });
+      await StockModel.decrementStock(productId, quantity);
     }
 
     await OrderModel.commitTransaction();
@@ -84,14 +79,69 @@ export const getOrderById = async (req, res, next) => {
 
 // Atualizar status do pedido
 export const updateOrder = async (req, res, next) => {
+  const { client_id: clientId, items } = req.body;
+  const orderId = req.params.id;
+  const userId = req.user.userId;
+
+  if (!clientId || !items?.length) {
+    return res.status(400).json({ error: "Cliente e itens são obrigatórios" });
+  }
+
+  let client;
   try {
-    const updatedOrder = await OrderModel.updateOrderStatus(req.params.id, req.body.status);
-    if (!updatedOrder) return res.status(404).json({ message: "Pedido não encontrado" });
-    res.json(updatedOrder);
+    client = await OrderModel.beginTransaction();
+    OrderItemModel.setTransactionClient(client);
+    StockModel.setTransactionClient(client);
+
+    // 1️⃣ Buscando itens atuais do pedido (trava itens)
+    const oldItems = await OrderItemModel.getItemsByOrderId(orderId);
+
+    // 2️⃣ Devolver estoque dos itens antigos
+    for (const old of oldItems) {
+      await StockModel.restoreStock(old.product_id, old.quantity);
+    }
+
+    // 3️⃣ Validar estoque dos novos itens
+    for (const item of items) {
+      const productId = Number(item.product_id);
+      const quantity = Number(item.quantity);
+
+      const stock = await StockModel.getCurrentStockForUpdate(productId);
+      if (stock < quantity) {
+        throw new Error(
+          `Estoque insuficiente para o produto ${productId}. Estoque atual: ${stock}, solicitado: ${quantity}`
+        );
+      }
+    }
+
+    // 4️⃣ Remover itens antigos
+    await OrderItemModel.deleteItemsByOrderId(orderId);
+
+    // 5️⃣ Inserir novos itens + calcular total + decrementar estoque
+    let total = 0;
+    for (const item of items) {
+      const productId = Number(item.product_id);
+      const quantity = Number(item.quantity);
+      const price = Number(item.price);
+
+      total += price * quantity;
+
+      await OrderItemModel.createOrderItem(orderId, productId, quantity, price);
+      await StockModel.decrementStock(productId, quantity);
+    }
+
+    // 6️⃣ Atualizar pedido (sem mexer no status!)
+    await OrderModel.updateOrderClientTotalStatus(orderId, clientId, total, "completed");
+
+    await OrderModel.commitTransaction();
+    res.json({ message: "Pedido atualizado com sucesso" });
+
   } catch (err) {
+    if (client) await OrderModel.rollbackTransaction();
     next(err);
   }
 };
+
 
 // Deletar pedido
 export const deleteOrder = async (req, res, next) => {

@@ -1,11 +1,35 @@
 import React from "react";
+import TableContainer from "./TableContainer";
+import CardTable from "./CardTable";
 
 const ProductTable = ({ products, onEdit, onDelete }) => {
+  const renderMobileRow = (p) => (
+    <>
+      <p><span className="font-medium">Nome:</span> {p.name}</p>
+      <p><span className="font-medium">Preço:</span> R$ {Number(p.price).toFixed(2)}</p>
+      <p><span className="font-medium">Estoque:</span> {p.stock_quantity}</p>
+      <div className="flex gap-2 mt-2">
+        <button
+          onClick={() => onEdit(p)}
+          className="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500 transition flex-1"
+        >
+          Editar
+        </button>
+        <button
+          onClick={() => onDelete(p.id)}
+          className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition flex-1"
+        >
+          Deletar
+        </button>
+      </div>
+    </>
+  );
+
   return (
-    <div className="w-full">
+    <>
       {/* Desktop Table */}
-      <div className="hidden md:block overflow-x-auto w-full">
-        <table className="w-full bg-white rounded shadow border-collapse">
+      <TableContainer>
+        <table className="hidden md:table w-full bg-white rounded shadow border-collapse">
           <thead className="bg-gray-200">
             <tr>
               <th className="p-4 text-left">Nome</th>
@@ -38,39 +62,11 @@ const ProductTable = ({ products, onEdit, onDelete }) => {
             ))}
           </tbody>
         </table>
-      </div>
+      </TableContainer>
 
       {/* Mobile Cards */}
-      <div className="md:hidden flex flex-col gap-4">
-        {products.map((p) => (
-          <div key={p.id} className="bg-white shadow rounded p-4 flex flex-col gap-2">
-            <p>
-              <span className="font-medium">Nome:</span> {p.name}
-            </p>
-            <p>
-              <span className="font-medium">Preço:</span> R$ {Number(p.price).toFixed(2)}
-            </p>
-            <p>
-              <span className="font-medium">Estoque:</span> {p.stock_quantity}
-            </p>
-            <div className="flex gap-2 mt-2">
-              <button
-                onClick={() => onEdit(p)}
-                className="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500 transition flex-1"
-              >
-                Editar
-              </button>
-              <button
-                onClick={() => onDelete(p.id)}
-                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition flex-1"
-              >
-                Deletar
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+      <CardTable data={products} renderRow={renderMobileRow} emptyMessage="Nenhum produto cadastrado." />
+    </>
   );
 };
 

@@ -70,6 +70,20 @@ export const getAllOrdersWithDetails = async () => {
   return res.rows;
 };
 
+export const updateOrderClientTotalStatus = async (orderId, clientId, total, status) => {
+  const executor = clientTransaction || pool;
+
+  const result = await executor.query(
+    `UPDATE orders 
+     SET client_id = $1, total = $2, status = $3, updated_at = NOW() 
+     WHERE id = $4
+     RETURNING *`,
+    [clientId, total, status, orderId]
+  );
+
+  return result.rows[0];
+};
+
 // Buscar pedido por ID (não precisa de transação)
 export const getOrderById = async (id) => {
   const res = await pool.query(`SELECT * FROM orders WHERE id=$1`, [id]);
@@ -83,6 +97,10 @@ export const updateOrderStatus = async (id, status) => {
     [status, id]
   );
   return res.rows[0];
+};
+
+export const deleteItemsByOrderId = async (order_id) => {
+  await clientTransaction.query(`DELETE FROM order_items WHERE order_id=$1`, [order_id]);
 };
 
 // Deletar pedido (não precisa de transação)
