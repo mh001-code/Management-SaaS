@@ -5,23 +5,19 @@ import jwt from "jsonwebtoken";
 // Login de usuário
 export const login = async (req, res, next) => {
   const { email, password } = req.body;
-  console.log("[LOGIN] Iniciando login para:", email); // 🔹 log
+  console.log("[LOGIN] Iniciando login para:", email);
 
   try {
     const result = await pool.query("SELECT * FROM users WHERE email=$1", [email]);
     if (result.rows.length === 0) {
-      console.log("[LOGIN] Usuário não encontrado");
       const error = new Error("Email ou senha incorretos");
       error.statusCode = 401;
       return next(error);
     }
 
     const user = result.rows[0];
-    console.log("[LOGIN] Usuário encontrado:", user.email, "Role:", user.role); // 🔹 log
-
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
-      console.log("[LOGIN] Senha incorreta");
       const error = new Error("Email ou senha incorretos");
       error.statusCode = 401;
       return next(error);
@@ -33,11 +29,8 @@ export const login = async (req, res, next) => {
       { expiresIn: "1h" }
     );
 
-    console.log("[LOGIN] Token criado:", token); // 🔹 log
-
     res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
   } catch (err) {
-    console.error("[LOGIN] Erro:", err); // 🔹 log
     next(err);
   }
 };
@@ -51,7 +44,7 @@ export const register = async (req, res, next) => {
 
     const result = await pool.query(
       "INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role, created_at",
-      [name, email, hashedPassword, role || 'user']
+      [name, email, hashedPassword, role || "user"]
     );
 
     const newUser = result.rows[0];
@@ -71,3 +64,11 @@ export const register = async (req, res, next) => {
   }
 };
 
+// ✅ NOVO: Retorna usuário autenticado (persistência ao atualizar página)
+export const me = async (req, res) => {
+  res.json({
+    id: req.user.userId,
+    email: req.user.email,
+    role: req.user.role,
+  });
+};

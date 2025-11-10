@@ -68,15 +68,16 @@
  */
 
 import { Router } from "express";
-import { login, register } from "../controllers/authController.js";
+import { login, register, me } from "../controllers/authController.js";
 import { validateUserCreation } from "../middlewares/validateUser.js";
+import authMiddleware from "../middlewares/authMiddleware.js";
 
 const router = Router();
 
-// Rota pública para registrar usuário com validação
 router.post("/register", validateUserCreation, register);
-
-// Rota pública de login
 router.post("/login", login);
+
+// ✅ Rota protegida para restaurar sessão após F5
+router.get("/me", authMiddleware, me);
 
 export default router;
