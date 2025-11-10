@@ -18,6 +18,7 @@ const Orders = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setOrders(res.data);
+      console.log("Orders carregados:", res.data);
     } catch (err) {
       console.error(err);
     } finally {

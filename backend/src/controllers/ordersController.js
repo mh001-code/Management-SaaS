@@ -3,6 +3,20 @@ import * as OrderItemModel from "../models/OrderItemModel.js";
 import * as StockModel from "../models/StockModel.js"; // tabela de movimentações
 import * as ProductModel from "../models/ProductModel.js";
 
+const normalizeStatus = (status) => {
+  if (!status) return "pendente";
+
+  const s = status.toString().toLowerCase();
+
+  if (["pendente", "pending"].includes(s)) return "pendente";
+  if (["pago", "paid"].includes(s)) return "pago";
+  if (["enviado", "shipped"].includes(s)) return "enviado";
+  if (["concluido", "concluído", "completed"].includes(s)) return "concluído";
+  if (["cancelado", "canceled"].includes(s)) return "cancelado";
+
+  return s; // fallback
+};
+
 // Criar pedido
 export const createOrder = async (req, res, next) => {
   const { client_id: clientId, items } = req.body;
@@ -56,7 +70,13 @@ export const createOrder = async (req, res, next) => {
 export const getOrders = async (req, res, next) => {
   try {
     const orders = await OrderModel.getAllOrdersWithDetails();
-    res.json(orders);
+
+    const formatted = orders.map(order => ({
+      ...order,
+      status: normalizeStatus(order.status),
+    }));
+
+    res.json(formatted);
   } catch (err) {
     next(err);
   }
@@ -72,6 +92,27 @@ export const getOrderById = async (req, res, next) => {
     order.items = items;
 
     res.json(order);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Atualizar apenas o status do pedido
+export const updateOrderStatus = async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    const orderId = req.params.id;
+
+    if (!status)
+      return res.status(400).json({ error: "Status é obrigatório." });
+
+    const newStatus = normalizeStatus(status);
+    const updated = await OrderModel.updateOrderStatus(orderId, newStatus);
+
+    if (!updated)
+      return res.status(404).json({ error: "Pedido não encontrado." });
+
+    res.json({ message: "Status atualizado com sucesso", status: newStatus });
   } catch (err) {
     next(err);
   }
@@ -131,7 +172,7 @@ export const updateOrder = async (req, res, next) => {
     }
 
     // 6️⃣ Atualizar pedido (sem mexer no status!)
-    await OrderModel.updateOrderClientTotalStatus(orderId, clientId, total, "completed");
+    await OrderModel.updateOrderClientTotalStatus(orderId, clientId, total, req.body.status || "pendente");
 
     await OrderModel.commitTransaction();
     res.json({ message: "Pedido atualizado com sucesso" });

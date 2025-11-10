@@ -33,10 +33,11 @@ export const createOrder = async (client_id, user_id, total) => {
   if (!clientTransaction) throw new Error("Transação não iniciada");
 
   const res = await clientTransaction.query(
-    `INSERT INTO orders (client_id, user_id, total, created_at)
-     VALUES ($1, $2, $3, NOW()) RETURNING *`,
+    `INSERT INTO orders (client_id, user_id, total, status, created_at)
+     VALUES ($1, $2, $3, 'pendente', NOW()) RETURNING *`,
     [client_id, user_id, total]
   );
+
   return res.rows[0];
 };
 
@@ -93,7 +94,7 @@ export const getOrderById = async (id) => {
 // Atualizar status do pedido (não precisa de transação)
 export const updateOrderStatus = async (id, status) => {
   const res = await pool.query(
-    `UPDATE orders SET status=$1 WHERE id=$2 RETURNING *`,
+    `UPDATE orders SET status = $1 WHERE id = $2 RETURNING *`,
     [status, id]
   );
   return res.rows[0];

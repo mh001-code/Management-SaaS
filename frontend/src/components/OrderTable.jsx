@@ -1,6 +1,7 @@
 import React from "react";
 import TableContainer from "./TableContainer";
 import CardTable from "./CardTable";
+import api from "../services/api";;
 
 const OrderTable = ({ orders, setEditingOrder, fetchOrders }) => {
   const handleDelete = async (id) => {
@@ -10,6 +11,15 @@ const OrderTable = ({ orders, setEditingOrder, fetchOrders }) => {
       fetchOrders();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleStatusChange = async (id, status) => {
+    try {
+      await api.put(`/orders/${id}/status`, { status });
+      fetchOrders();
+    } catch (err) {
+      console.error("Erro ao atualizar status:", err);
     }
   };
 
@@ -72,16 +82,24 @@ const OrderTable = ({ orders, setEditingOrder, fetchOrders }) => {
                 </td>
                 <td className="p-2">R${Number(order.total).toFixed(2)}</td>
                 <td className="p-2">
-                  <span
-                    className={`px-2 py-1 rounded text-white text-sm ${order.status === "pendente" && "bg-yellow-500"} 
-                      ${order.status === "pago" && "bg-green-600"}
-                      ${order.status === "enviado" && "bg-blue-600"}
-                      ${order.status === "concluído" && "bg-purple-600"}
-                      ${order.status === "cancelado" && "bg-red-600"}
+                  <select
+                    value={order.status}
+                    onChange={(e) => handleStatusChange(order.order_id, e.target.value)}
+                    className={`px-2 py-1 rounded text-white text-sm cursor-pointer
+                      ${order.status === "pendente" && "bg-amber-600"}
+                      ${order.status === "pago" && "bg-emerald-600"}
+                      ${order.status === "enviado" && "bg-sky-600"}
+                      ${order.status === "concluído" && "bg-indigo-600"}
+                      ${order.status === "cancelado" && "bg-rose-600"}
                     `}
                   >
-                    {order.status}
-                  </span>
+                    <option value="pendente">Pendente</option>
+                    <option value="pago">Pago</option>
+                    <option value="enviado">Enviado</option>
+                    <option value="concluído">Concluído</option>
+                    <option value="cancelado">Cancelado</option>
+                  </select>
+
                 </td>
                 <td className="p-2 flex gap-2 justify-center">
                   <button

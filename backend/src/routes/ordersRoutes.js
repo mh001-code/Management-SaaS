@@ -134,7 +134,8 @@ import {
   getOrders,
   getOrderById,
   updateOrder,
-  deleteOrder
+  deleteOrder,
+  updateOrderStatus
 } from "../controllers/ordersController.js";
 
 const router = Router();
@@ -142,6 +143,10 @@ const router = Router();
 router.get("/", getOrders);
 router.get("/:id", getOrderById);
 router.post("/", createOrder);
+
+// ✅ Nova rota de status
+router.put("/:id/status", updateOrderStatus);
+
 router.put("/:id", updateOrder);
 router.delete("/:id", deleteOrder);
 
