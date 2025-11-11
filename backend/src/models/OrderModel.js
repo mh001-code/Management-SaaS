@@ -41,7 +41,6 @@ export const createOrder = async (client_id, user_id, total) => {
   return res.rows[0];
 };
 
-// Listar todos pedidos (não precisa de transação)
 // Buscar todos os pedidos com cliente e itens
 export const getAllOrdersWithDetails = async () => {
   const res = await pool.query(`
@@ -85,26 +84,30 @@ export const updateOrderClientTotalStatus = async (orderId, clientId, total, sta
   return result.rows[0];
 };
 
-// Buscar pedido por ID (não precisa de transação)
+// Buscar pedido por ID
 export const getOrderById = async (id) => {
   const res = await pool.query(`SELECT * FROM orders WHERE id=$1`, [id]);
   return res.rows[0];
 };
 
-// Atualizar status do pedido (não precisa de transação)
+// ✅ Atualizar status corretamente
 export const updateOrderStatus = async (id, status) => {
   const res = await pool.query(
-    `UPDATE orders SET status = $1 WHERE id = $2 RETURNING *`,
+    `UPDATE orders 
+     SET status = $1, updated_at = NOW() 
+     WHERE id = $2 
+     RETURNING *`,
     [status, id]
   );
   return res.rows[0];
 };
 
+// Deletar itens do pedido (usado em updateOrder)
 export const deleteItemsByOrderId = async (order_id) => {
   await clientTransaction.query(`DELETE FROM order_items WHERE order_id=$1`, [order_id]);
 };
 
-// Deletar pedido (não precisa de transação)
+// Deletar pedido
 export const deleteOrder = async (id) => {
   const res = await pool.query(`DELETE FROM orders WHERE id=$1 RETURNING *`, [id]);
   return res.rows[0];
