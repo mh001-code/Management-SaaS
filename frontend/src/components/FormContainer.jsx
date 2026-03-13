@@ -10,7 +10,18 @@ const FormContainer = ({ children, editTarget }) => {
   }, [editTarget]);
 
   return (
-    <div ref={ref} className="mb-6 p-4 md:p-6 bg-white rounded shadow">
+    <div 
+      ref={ref} 
+      style={{
+        marginBottom: 'var(--space-2xl)',
+        padding: 'var(--space-lg)',
+        backgroundColor: 'var(--color-surface)',
+        borderRadius: 'var(--radius-lg)',
+        border: '1px solid var(--color-border)',
+        boxShadow: 'var(--shadow-sm)',
+        transition: 'all var(--transition-base) ease',
+      }}
+    >
       {children}
     </div>
   );

@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import FormContainer from "./FormContainer";
+import Button from "./ui/Button";
+import Input from "./ui/Input";
 
 const ProductForm = ({ productToEdit, onSave, onCancel }) => {
   const [form, setForm] = useState({ name: "", price: "", description: "", stock_quantity: "" });
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (productToEdit) {
@@ -31,7 +34,12 @@ const ProductForm = ({ productToEdit, onSave, onCancel }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-    onSave({ ...form, price: Number(form.price), stock_quantity: Number(form.stock_quantity) });
+    setIsSubmitting(true);
+    try {
+      onSave({ ...form, price: Number(form.price), stock_quantity: Number(form.stock_quantity) });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
@@ -41,66 +49,127 @@ const ProductForm = ({ productToEdit, onSave, onCancel }) => {
 
   return (
     <FormContainer editTarget={productToEdit}>
-      <form className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full" onSubmit={handleSubmit}>
-        <h2 className="text-lg font-semibold sm:col-span-2">
-          {productToEdit ? "Editar Produto" : "Adicionar Produto"}
-        </h2>
+      <form style={{ width: '100%' }} onSubmit={handleSubmit}>
+        {/* Título */}
+        <div style={{
+          marginBottom: 'var(--space-xl)',
+          paddingBottom: 'var(--space-lg)',
+          borderBottom: '1px solid var(--color-border)',
+        }}>
+          <h3 style={{
+            fontSize: 'var(--text-lg)',
+            fontWeight: '700',
+            color: 'var(--color-text)',
+            margin: 0,
+            fontFamily: 'var(--font-display)',
+          }}>
+            {productToEdit ? "✏️ Editar Produto" : "➕ Adicionar Produto"}
+          </h3>
+        </div>
 
-        <div className="flex flex-col">
-          <label className="font-medium mb-1">Nome</label>
-          <input
+        {/* Grid de formulário */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: 'var(--space-lg)',
+          marginBottom: 'var(--space-2xl)',
+        }}>
+          <Input
             type="text"
+            label="Nome"
+            required
+            placeholder="Nome do produto"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="border p-2 rounded w-full"
+            disabled={isSubmitting}
+            error={!!errors.name}
+            errorMessage={errors.name}
           />
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-        </div>
 
-        <div className="flex flex-col">
-          <label className="font-medium mb-1">Preço</label>
-          <input
+          <Input
             type="number"
+            label="Preço"
+            required
+            placeholder="0,00"
             value={form.price}
             onChange={(e) => setForm({ ...form, price: e.target.value })}
-            className="border p-2 rounded w-full"
+            disabled={isSubmitting}
+            error={!!errors.price}
+            errorMessage={errors.price}
           />
-          {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
-        </div>
 
-        <div className="flex flex-col">
-          <label className="font-medium mb-1">Estoque</label>
-          <input
+          <Input
             type="number"
+            label="Estoque"
+            required
+            placeholder="0"
             value={form.stock_quantity}
             onChange={(e) => setForm({ ...form, stock_quantity: e.target.value })}
-            className="border p-2 rounded w-full"
+            disabled={isSubmitting}
+            error={!!errors.stock_quantity}
+            errorMessage={errors.stock_quantity}
           />
-          {errors.stock_quantity && <p className="text-red-500 text-sm mt-1">{errors.stock_quantity}</p>}
+
+          {/* Descrição - full width */}
+          <div style={{
+            gridColumn: '1 / -1',
+          }}>
+            <label style={{
+              display: 'block',
+              fontSize: 'var(--text-sm)',
+              fontWeight: '600',
+              color: 'var(--color-text)',
+              marginBottom: 'var(--space-sm)',
+              fontFamily: 'var(--font-body)',
+            }}>
+              Descrição
+            </label>
+            <textarea
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              placeholder="Descrição do produto..."
+              rows={4}
+              disabled={isSubmitting}
+              style={{
+                width: '100%',
+                padding: 'var(--space-md) var(--space-lg)',
+                backgroundColor: 'var(--color-surface2)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-md)',
+                color: 'var(--color-text)',
+                fontFamily: 'var(--font-body)',
+                fontSize: 'var(--text-base)',
+                resize: 'vertical',
+                transition: 'all 150ms ease',
+              }}
+            />
+          </div>
         </div>
 
-        <div className="flex flex-col sm:col-span-2">
-          <label className="font-medium mb-1">Descrição</label>
-          <textarea
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className="border p-2 rounded w-full"
-          />
-        </div>
-
-        <div className="sm:col-span-2 flex flex-col sm:flex-row gap-2 justify-end">
-          <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full sm:w-auto">
-            {productToEdit ? "Atualizar" : "Criar"}
-          </button>
+        {/* Botões de Ação */}
+        <div style={{
+          display: 'flex',
+          gap: 'var(--space-md)',
+          justifyContent: 'flex-end',
+          flexWrap: 'wrap',
+        }}>
           {productToEdit && (
-            <button
+            <Button
               type="button"
               onClick={handleCancel}
-              className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 w-full sm:w-auto"
+              variant="secondary"
+              disabled={isSubmitting}
             >
-              Cancelar
-            </button>
+              ✕ Cancelar
+            </Button>
           )}
+          <Button
+            type="submit"
+            variant={productToEdit ? "warning" : "success"}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Processando..." : (productToEdit ? "✓ Atualizar" : "✓ Criar")}
+          </Button>
         </div>
       </form>
     </FormContainer>

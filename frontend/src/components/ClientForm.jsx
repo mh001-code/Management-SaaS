@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from "react";
 import api from "../services/api";
 import FormContainer from "./FormContainer";
+import Button from "./ui/Button";
+import Input from "./ui/Input";
+import notificationService from "../services/notificationService";
+import errorService from "../services/errorService";
 
 const ClientForm = ({ editingClient, setEditingClient, fetchClients }) => {
   const [form, setForm] = useState({ name: "", email: "" });
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (editingClient) {
@@ -28,21 +33,23 @@ const ClientForm = ({ editingClient, setEditingClient, fetchClients }) => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    setIsSubmitting(true);
     try {
       if (editingClient) {
-        await api.put(`/clients/${editingClient.id}`, form, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
+        await api.put(`/clients/${editingClient.id}`, form);
+        notificationService.success("Cliente atualizado com sucesso!");
       } else {
-        await api.post("/clients", form, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
+        await api.post("/clients", form);
+        notificationService.success("Cliente criado com sucesso!");
       }
       setForm({ name: "", email: "" });
       setEditingClient(null);
       fetchClients();
     } catch (err) {
-      console.error(err);
+      const message = errorService.handle(err, "salvar cliente");
+      notificationService.error(message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -54,45 +61,80 @@ const ClientForm = ({ editingClient, setEditingClient, fetchClients }) => {
 
   return (
     <FormContainer editTarget={editingClient}>
-      <form className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full" onSubmit={handleSubmit}>
-        <div className="flex flex-col">
-          <label className="font-medium mb-1">Nome</label>
-          <input
+      <form style={{ width: '100%' }} onSubmit={handleSubmit}>
+        {/* Título */}
+        <div style={{
+          marginBottom: 'var(--space-xl)',
+          paddingBottom: 'var(--space-lg)',
+          borderBottom: '1px solid var(--color-border)',
+        }}>
+          <h3 style={{
+            fontSize: 'var(--text-lg)',
+            fontWeight: '700',
+            color: 'var(--color-text)',
+            margin: 0,
+            fontFamily: 'var(--font-display)',
+          }}>
+            {editingClient ? "✏️ Editar Cliente" : "➕ Adicionar Cliente"}
+          </h3>
+        </div>
+
+        {/* Grid de formulário */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: 'var(--space-lg)',
+          marginBottom: 'var(--space-2xl)',
+        }}>
+          <Input
             type="text"
+            label="Nome"
+            required
+            placeholder="Nome do cliente"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="border p-2 rounded focus:ring-2 focus:ring-blue-400 transition w-full"
+            disabled={isSubmitting}
+            error={!!errors.name}
+            errorMessage={errors.name}
           />
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-        </div>
 
-        <div className="flex flex-col">
-          <label className="font-medium mb-1">Email</label>
-          <input
+          <Input
             type="email"
+            label="Email"
+            required
+            placeholder="exemplo@email.com"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
-            className="border p-2 rounded focus:ring-2 focus:ring-blue-400 transition w-full"
+            disabled={isSubmitting}
+            error={!!errors.email}
+            errorMessage={errors.email}
           />
-          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
         </div>
 
-        <div className="sm:col-span-2 flex flex-col sm:flex-row gap-2 justify-end">
-          <button
-            type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition w-full sm:w-auto"
-          >
-            {editingClient ? "Atualizar" : "Adicionar"}
-          </button>
+        {/* Botões de Ação */}
+        <div style={{
+          display: 'flex',
+          gap: 'var(--space-md)',
+          justifyContent: 'flex-end',
+          flexWrap: 'wrap',
+        }}>
           {editingClient && (
-            <button
+            <Button
               type="button"
               onClick={handleCancel}
-              className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 transition w-full sm:w-auto"
+              variant="secondary"
+              disabled={isSubmitting}
             >
-              Cancelar
-            </button>
+              ✕ Cancelar
+            </Button>
           )}
+          <Button
+            type="submit"
+            variant={editingClient ? "warning" : "success"}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Processando..." : (editingClient ? "✓ Atualizar" : "✓ Criar")}
+          </Button>
         </div>
       </form>
     </FormContainer>

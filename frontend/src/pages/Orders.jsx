@@ -1,13 +1,15 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import { useFetch, useSearch, usePagination } from "../hooks";
-import { GLOBAL_STYLES } from "../constants/styles";
 import { API_ENDPOINTS } from "../constants";
+import { GLOBAL_STYLES } from "../constants/styles";
 import api from "../services/api";
 import errorService from "../services/errorService";
 import notificationService from "../services/notificationService";
 import { useAuth } from "../contexts/AuthContext";
 import DataTable from "../components/DataTable";
 import OrderForm from "../components/OrderForm";
+import Card from "../components/ui/Card";
+import Input from "../components/ui/Input";
 
 const STATUS_BADGE = {
   pendente: "badge-yellow",
@@ -23,11 +25,19 @@ const Orders = () => {
   const [statusFilter, setStatusFilter] = useState("todos");
 
   // Hooks customizados
-  const { data: orders, loading, error, refetch } = useFetch(
+  const { data: rawOrders, loading, error, refetch } = useFetch(
     API_ENDPOINTS.ORDERS,
     true,
     5 * 60 * 1000
   );
+
+  // Normalizar order_id → id para manter consistência
+  const orders = useMemo(() => {
+    return (rawOrders || []).map(order => ({
+      ...order,
+      id: order.order_id || order.id,
+    }));
+  }, [rawOrders]);
 
   const { search, setSearch, filtered: searchFiltered } = useSearch(orders || [], [
     "client",
@@ -88,25 +98,15 @@ const Orders = () => {
           <div className="topbar">
             <div className="topbar-title">Pedidos</div>
             <div className="topbar-right">
-              <input
-                className="date-input"
+              <Input
                 placeholder="🔍 Buscar pedido..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                style={{ width: 200 }}
               />
               <select
-                className="date-input"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                style={{
-                  padding: "8px 12px",
-                  backgroundColor: "#17171f",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                  borderRadius: "6px",
-                  color: "#e8e8f0",
-                  cursor: "pointer",
-                }}
+                className="input"
               >
                 {statuses.map(s => (
                   <option key={s} value={s}>
@@ -119,23 +119,18 @@ const Orders = () => {
 
           <div className="page-body">
             {/* Formulário */}
-            <div ref={formRef} className="fade-up">
-              <div className="form-card">
-                <div className="form-title-sm">
-                  {editingOrder 
-                    ? "✏️ Editar Pedido" 
-                    : "➕ Novo Pedido"}
-                </div>
+            <div ref={formRef} className="animate-fadeUp">
+              <Card title={editingOrder ? "✏️ Editar Pedido" : "➕ Novo Pedido"}>
                 <OrderForm
                   onOrderCreated={refetch}
                   editingOrder={editingOrder}
                   onCancel={handleCancel}
                 />
-              </div>
+              </Card>
             </div>
 
             {/* Tabela */}
-            <div className="chart-card fade-up fade-up-2">
+            <div className="chart-card animate-fadeUp">
               <div
                 style={{
                   display: "flex",

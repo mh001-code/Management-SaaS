@@ -108,7 +108,7 @@ const Dashboard = () => {
                 {/* Stat cards */}
                 <div className="stat-grid">
                   {STAT_CARDS.map((card) => (
-                    <div key={card.label} className={`stat-card fade-up ${card.delay}`}>
+                    <div key={card.label} className={`stat-card animate-fadeUp`}>
                       <div className="stat-accent-line" style={{ background: card.accent }} />
                       <span className="stat-card-icon">{card.icon}</span>
                       <div className="stat-card-label">{card.label}</div>
@@ -119,7 +119,7 @@ const Dashboard = () => {
 
                 {/* Charts */}
                 <div className="charts-grid">
-                  <div className="chart-card fade-up fade-up-3">
+                  <div className="chart-card animate-fadeUp">
                     <div className="chart-title">Produtos em Estoque</div>
                     <ResponsiveContainer width="100%" height={220}>
                       <BarChart data={summary?.topProducts || []} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
@@ -131,7 +131,7 @@ const Dashboard = () => {
                     </ResponsiveContainer>
                   </div>
 
-                  <div className="chart-card fade-up fade-up-4">
+                  <div className="chart-card animate-fadeUp">
                     <div className="chart-title">Pedidos por Status</div>
                     {summary?.ordersByStatus?.length > 0 ? (
                       <ResponsiveContainer width="100%" height={220}>

@@ -1,5 +1,6 @@
 import React, { memo, useCallback } from 'react';
 import PropTypes from 'prop-types';
+import Button from './ui/Button';
 
 /**
  * Componente genérico de tabela otimizado
@@ -27,27 +28,17 @@ const DataTable = memo(({
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center p-8">
-        <div className="spinner-ring" style={{
-          width: '40px',
-          height: '40px',
-          border: '3px solid rgba(255,255,255,0.1)',
-          borderTopColor: '#4f6ef7',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite',
-        }} />
+      <div className="flex-center p-8">
+        <div className="spinner" />
       </div>
     );
   }
 
   if (!rows || rows.length === 0) {
     return (
-      <div style={{
-        textAlign: 'center',
-        padding: '40px',
-        color: 'rgba(255,255,255,0.35)',
-      }}>
-        {emptyMessage}
+      <div className="empty-state">
+        <div className="empty-state-icon">📊</div>
+        <div className="empty-state-text">{emptyMessage}</div>
       </div>
     );
   }
@@ -55,25 +46,27 @@ const DataTable = memo(({
   return (
     <>
       {/* Desktop Table */}
-      <div className="hidden md:block overflow-x-auto">
+      <div className="hidden-mobile overflow-x-auto">
         <table style={{
           width: '100%',
           borderCollapse: 'collapse',
-          fontSize: '14px',
+          fontSize: 'var(--text-base)',
         }}>
           <thead>
             <tr style={{
               backgroundColor: 'rgba(255,255,255,0.04)',
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
+              borderBottom: '1px solid var(--color-border)',
             }}>
               {columns.map((col) => (
                 <th
                   key={col.key}
                   style={{
-                    padding: '12px',
+                    padding: 'var(--space-md)',
                     textAlign: col.align || 'left',
                     fontWeight: '600',
-                    color: '#e8e8f0',
+                    color: 'var(--color-text)',
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 'var(--text-sm)',
                   }}
                 >
                   {col.label}
@@ -81,10 +74,10 @@ const DataTable = memo(({
               ))}
               {(onEdit || onDelete) && (
                 <th style={{
-                  padding: '12px',
+                  padding: 'var(--space-md)',
                   textAlign: 'center',
                   fontWeight: '600',
-                  color: '#e8e8f0',
+                  color: 'var(--color-text)',
                 }}>
                   Ações
                 </th>
@@ -96,8 +89,8 @@ const DataTable = memo(({
               <tr
                 key={row[rowKey] || idx}
                 style={{
-                  borderBottom: '1px solid rgba(255,255,255,0.06)',
-                  transition: 'background 0.15s',
+                  borderBottom: '1px solid var(--color-border)',
+                  transition: 'all var(--transition-base) ease',
                 }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -106,9 +99,9 @@ const DataTable = memo(({
                   <td
                     key={col.key}
                     style={{
-                      padding: '12px',
+                      padding: 'var(--space-md)',
                       textAlign: col.align || 'left',
-                      color: '#e8e8f0',
+                      color: 'var(--color-text)',
                     }}
                   >
                     {col.render ? col.render(row[col.key], row) : row[col.key]}
@@ -116,51 +109,31 @@ const DataTable = memo(({
                 ))}
                 {(onEdit || onDelete) && (
                   <td style={{
-                    padding: '12px',
+                    padding: 'var(--space-md)',
                     textAlign: 'center',
                     display: 'flex',
-                    gap: '8px',
+                    gap: 'var(--space-sm)',
                     justifyContent: 'center',
                   }}>
                     {onEdit && (
-                      <button
+                      <Button
+                        variant="warning"
+                        size="sm"
                         onClick={() => handleEdit(row)}
-                        style={{
-                          padding: '6px 12px',
-                          backgroundColor: '#f59e0b',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                          fontWeight: '500',
-                          transition: 'background 0.15s',
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f08a00'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f59e0b'}
+                        style={{ minWidth: 'auto' }}
                       >
-                        Editar
-                      </button>
+                        ✎ Editar
+                      </Button>
                     )}
                     {onDelete && (
-                      <button
+                      <Button
+                        variant="danger"
+                        size="sm"
                         onClick={() => handleDelete(row[rowKey])}
-                        style={{
-                          padding: '6px 12px',
-                          backgroundColor: '#ef4444',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                          fontWeight: '500',
-                          transition: 'background 0.15s',
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+                        style={{ minWidth: 'auto' }}
                       >
-                        Deletar
-                      </button>
+                        🗑 Deletar
+                      </Button>
                     )}
                   </td>
                 )}
@@ -171,31 +144,31 @@ const DataTable = memo(({
       </div>
 
       {/* Mobile Cards */}
-      <div className="md:hidden space-y-3">
+      <div className="visible-mobile" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
         {rows.map((row, idx) => (
           <div
             key={row[rowKey] || idx}
             style={{
-              backgroundColor: '#17171f',
-              border: '1px solid rgba(255,255,255,0.06)',
-              borderRadius: '8px',
-              padding: '12px',
+              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-lg)',
+              padding: 'var(--space-md)',
             }}
           >
             {columns.map((col) => (
-              <div key={col.key} style={{ marginBottom: '8px' }}>
+              <div key={col.key} style={{ marginBottom: 'var(--space-md)' }}>
                 <span style={{
                   fontWeight: '600',
-                  color: '#4f6ef7',
-                  fontSize: '12px',
+                  color: 'var(--color-primary)',
+                  fontSize: 'var(--text-xs)',
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px',
                 }}>
                   {col.label}:
                 </span>
                 <span style={{
-                  marginLeft: '8px',
-                  color: '#e8e8f0',
+                  marginLeft: 'var(--space-md)',
+                  color: 'var(--color-text)',
                 }}>
                   {col.render ? col.render(row[col.key], row) : row[col.key]}
                 </span>
@@ -204,44 +177,28 @@ const DataTable = memo(({
             {(onEdit || onDelete) && (
               <div style={{
                 display: 'flex',
-                gap: '8px',
-                marginTop: '12px',
+                gap: 'var(--space-sm)',
+                marginTop: 'var(--space-md)',
               }}>
                 {onEdit && (
-                  <button
+                  <Button
+                    variant="warning"
+                    size="sm"
                     onClick={() => handleEdit(row)}
-                    style={{
-                      flex: 1,
-                      padding: '8px',
-                      backgroundColor: '#f59e0b',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      fontWeight: '500',
-                    }}
+                    style={{ flex: 1 }}
                   >
-                    Editar
-                  </button>
+                    ✎ Editar
+                  </Button>
                 )}
                 {onDelete && (
-                  <button
+                  <Button
+                    variant="danger"
+                    size="sm"
                     onClick={() => handleDelete(row[rowKey])}
-                    style={{
-                      flex: 1,
-                      padding: '8px',
-                      backgroundColor: '#ef4444',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      fontWeight: '500',
-                    }}
+                    style={{ flex: 1 }}
                   >
-                    Deletar
-                  </button>
+                    🗑 Deletar
+                  </Button>
                 )}
               </div>
             )}

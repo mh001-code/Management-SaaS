@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { FaBars, FaTachometerAlt, FaUsers, FaBoxOpen, FaShoppingCart, FaUserShield } from "react-icons/fa";
 
-const Sidebar = ({ children }) => {
+const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showHamburger, setShowHamburger] = useState(true);
@@ -17,7 +17,7 @@ const Sidebar = ({ children }) => {
 
   const handleCloseMobile = () => {
     setMobileOpen(false);
-    setTimeout(() => setShowHamburger(true), 300); // 300ms = mesma duração da animação da sidebar
+    setTimeout(() => setShowHamburger(true), 300);
   };
 
   const handleOpenMobile = () => {
@@ -26,7 +26,7 @@ const Sidebar = ({ children }) => {
   };
 
   return (
-    <div className="flex">
+    <>
       {/* Botão Hamburger Mobile */}
       {showHamburger && !mobileOpen && (
         <button
@@ -39,9 +39,23 @@ const Sidebar = ({ children }) => {
 
       {/* Sidebar Desktop */}
       <aside
-        className={`hidden md:flex flex-col bg-gray-800 text-white min-h-screen transition-all duration-300 ${
-          collapsed ? "w-20" : "w-64"
-        }`}
+        style={{
+          position: "fixed",
+          left: 0,
+          top: 0,
+          height: "100vh",
+          zIndex: 20,
+          flexShrink: 0,
+          backgroundColor: "#1f2937",
+          color: "white",
+          display: "flex",
+          flexDirection: "column",
+          width: collapsed ? "80px" : "256px",
+          transition: "width 0.3s ease",
+          overflowY: "auto",
+          borderRight: "1px solid #374151",
+        }}
+        className="sidebar-desktop"
       >
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
           {!collapsed && <h2 className="text-2xl font-bold transition-opacity duration-300">Painel</h2>}
@@ -50,11 +64,26 @@ const Sidebar = ({ children }) => {
               collapsed ? "rotate-180" : "rotate-0"
             }`}
             onClick={() => setCollapsed(!collapsed)}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: "4px 8px",
+            }}
           >
             <FaBars size={20} />
           </button>
         </div>
-        <nav className="flex flex-col gap-2 mt-4 px-2">
+        <nav style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "8px",
+          marginTop: "16px",
+          paddingLeft: "8px",
+          paddingRight: "8px",
+          overflowY: "auto",
+          flex: 1,
+        }}>
           {links.map((link, index) => (
             <NavLink
               key={link.path}
@@ -64,7 +93,17 @@ const Sidebar = ({ children }) => {
                   isActive ? "bg-gray-700" : ""
                 }`
               }
-              style={{ transitionDelay: `${index * 50}ms` }} // animação escalonada
+              style={{ 
+                transitionDelay: `${index * 50}ms`,
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                padding: "8px",
+                borderRadius: "6px",
+                textDecoration: "none",
+                color: "white",
+                cursor: "pointer",
+              }}
             >
               <span className="text-lg">{link.icon}</span>
               {!collapsed && <span>{link.name}</span>}
@@ -115,16 +154,7 @@ const Sidebar = ({ children }) => {
         }`}
         onClick={handleCloseMobile}
       />
-
-      {/* Conteúdo Principal com movimento */}
-      <main
-        className={`flex-1 transition-transform duration-300 ease-in-out ${
-          mobileOpen ? "translate-x-64" : "translate-x-0"
-        }`}
-      >
-        {children}
-      </main>
-    </div>
+    </>
   );
 };
 

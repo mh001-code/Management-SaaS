@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useFetch, useSearch, useForm, usePagination } from "../hooks";
-import { GLOBAL_STYLES } from "../constants/styles";
 import { API_ENDPOINTS } from "../constants";
 import api from "../services/api";
 import errorService from "../services/errorService";
@@ -8,6 +7,10 @@ import notificationService from "../services/notificationService";
 import { useAuth } from "../contexts/AuthContext";
 import DataTable from "../components/DataTable";
 import DataForm from "../components/DataForm";
+import Card from "../components/ui/Card";
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
+import { GLOBAL_STYLES } from "../constants/styles";
 
 const Clients = () => {
   const { user, logout } = useAuth();
@@ -106,23 +109,19 @@ const Clients = () => {
           <div className="topbar">
             <div className="topbar-title">Clientes</div>
             <div className="topbar-right">
-              <input
-                className="date-input"
+              <Input
                 placeholder="🔍 Buscar cliente..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                style={{ width: 220 }}
+                style={{ width: '220px', marginBottom: 0 }}
               />
             </div>
           </div>
 
           <div className="page-body">
             {/* Formulário */}
-            <div ref={formRef} className="fade-up">
-              <div className="form-card">
-                <div className="form-title-sm">
-                  {editingClient ? "✏️ Editar Cliente" : "➕ Novo Cliente"}
-                </div>
+            <div ref={formRef} className="animate-fadeUp">
+              <Card title={editingClient ? "✏️ Editar Cliente" : "➕ Novo Cliente"}>
                 <DataForm
                   fields={[
                     {
@@ -152,30 +151,11 @@ const Clients = () => {
                   onFieldBlur={(name) => setFieldTouched(name, true)}
                   submitLabel={editingClient ? "Atualizar" : "Adicionar"}
                 />
-              </div>
+              </Card>
             </div>
 
             {/* Tabela */}
-            <div className="chart-card fade-up fade-up-2">
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 16,
-                }}
-              >
-                <div className="chart-title" style={{ marginBottom: 0 }}>
-                  Todos os Clientes
-                  <span
-                    className="badge badge-blue"
-                    style={{ marginLeft: 10 }}
-                  >
-                    {filtered.length}
-                  </span>
-                </div>
-              </div>
-
+            <Card title="Todos os Clientes">
               <DataTable
                 rows={paginatedItems}
                 columns={[
@@ -255,11 +235,11 @@ const Clients = () => {
                   </button>
                 </div>
               )}
-            </div>
+            </Card>
           </div>
         </div>
-    </>
-  );
-};
+      </>
+    );
+  };
 
-export default Clients;
+  export default Clients;

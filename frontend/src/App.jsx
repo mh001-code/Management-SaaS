@@ -4,6 +4,10 @@ import Sidebar from "./components/Sidebar";
 import PrivateRoute from "./components/PrivateRoute";
 import Login from "./pages/Login";
 
+// Design System
+import "./theme/theme.css";
+import "./index.css";
+
 // Lazy load das páginas para code-splitting
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Clients = lazy(() => import("./pages/Clients"));
@@ -34,7 +38,7 @@ const PageLoader = () => (
 );
 
 const PrivateLayout = () => (
-  <main style={{ flex: 1, minHeight: '100vh' }}>
+  <main className="app-main-layout">
     <Suspense fallback={<PageLoader />}>
       <Outlet />
     </Suspense>
@@ -52,10 +56,10 @@ const App = () => {
         path="/"
         element={
           <PrivateRoute>
-            <div style={{ display: 'flex', width: '100%', height: '100vh' }}>
+            <>
               <Sidebar />
               <PrivateLayout />
-            </div>
+            </>
           </PrivateRoute>
         }
       >

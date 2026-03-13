@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import FormContainer from "./FormContainer";
+import Button from "./ui/Button";
+import Input from "./ui/Input";
 import api from "../services/api";
+import notificationService from "../services/notificationService";
+import errorService from "../services/errorService";
 
 const OrderForm = ({ onOrderCreated, editingOrder, onCancel }) => {
   const [clients, setClients] = useState([]);
@@ -10,33 +14,37 @@ const OrderForm = ({ onOrderCreated, editingOrder, onCancel }) => {
   const [selectedProduct, setSelectedProduct] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [status, setStatus] = useState("pendente");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // ✅ Buscar clientes e produtos (sem headers duplicados)
   useEffect(() => {
-    const fetchClients = async () => {
-      const res = await api.get("/clients", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      setClients(res.data);
+    const fetchData = async () => {
+      try {
+        const [clientsRes, productsRes] = await Promise.all([
+          api.get("/clients"),
+          api.get("/products"),
+        ]);
+        setClients(clientsRes.data);
+        setProducts(productsRes.data);
+      } catch (err) {
+        notificationService.error("Erro ao carregar dados");
+      }
     };
-    const fetchProducts = async () => {
-      const res = await api.get("/products", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      setProducts(res.data);
-    };
-
-    fetchClients();
-    fetchProducts();
+    fetchData();
   }, []);
 
+  // ✅ Carregar dados do pedido em edição
   useEffect(() => {
     if (editingOrder) {
       setSelectedClientId(editingOrder.client_id);
-      setStatus(editingOrder.status); // ✅ carrega o status
-      setItems(editingOrder.items.map(it => ({ ...it, reserved_quantity: it.quantity })));
+      setStatus(editingOrder.status || "pendente");
+      setItems(editingOrder.items?.map(it => ({ 
+        ...it, 
+        reserved_quantity: it.quantity 
+      })) || []);
     } else {
       setSelectedClientId("");
-      setStatus("pendente"); // ✅ quando criar novo volta para pendente
+      setStatus("pendente");
       setItems([]);
     }
   }, [editingOrder]);
@@ -50,18 +58,15 @@ const OrderForm = ({ onOrderCreated, editingOrder, onCancel }) => {
     const existingItem = items.find((it) => it.product_id === product.id);
     const alreadyInOrder = existingItem ? existingItem.quantity : 0;
 
-    const available = product.stock_quantity ?? product.stock ?? 0; // adapte ao nome que seu backend usa
+    const available = product.stock_quantity ?? product.stock ?? 0;
     const totalRequested = alreadyInOrder + Number(quantity);
-
-    // se o item já está no pedido atual (editingOrder), permitir até product.stock + existing
     const allowed = available + (existingItem ? existingItem.quantity : 0);
 
     if (totalRequested > allowed) {
-      alert(`Estoque insuficiente! Disponível: ${allowed}, solicitado total: ${totalRequested}`);
+      notificationService.error(`Estoque insuficiente! Disponível: ${allowed}`);
       return;
     }
 
-    // ✅ Se não exceder, adiciona normalmente:
     setItems((prev) => {
       if (existingItem) {
         return prev.map((it) =>
@@ -90,211 +95,416 @@ const OrderForm = ({ onOrderCreated, editingOrder, onCancel }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedClientId || !items.length) return alert("Cliente e itens são obrigatórios");
+    if (!selectedClientId || !items.length) {
+      notificationService.error("Cliente e itens são obrigatórios");
+      return;
+    }
 
+    setIsSubmitting(true);
     try {
       if (editingOrder) {
-        await api.put(
-          `/orders/${editingOrder.order_id}`,
-          { client_id: Number(selectedClientId), items, status },   // ← AQUI
-          { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-        );
+        await api.put(`/orders/${editingOrder.id}`, {
+          client_id: Number(selectedClientId),
+          items,
+          status,
+        });
+        notificationService.success("Pedido atualizado com sucesso!");
         onCancel();
       } else {
-        await api.post(
-          "/orders",
-          { client_id: Number(selectedClientId), items, status },   // ← AQUI
-          { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-        );
+        await api.post("/orders", {
+          client_id: Number(selectedClientId),
+          items,
+          status,
+        });
+        notificationService.success("Pedido criado com sucesso!");
       }
       setItems([]);
       setSelectedClientId("");
       onOrderCreated();
     } catch (err) {
-      console.error("Erro ao salvar pedido:", err);
+      const message = errorService.handle(err, "salvar pedido");
+      notificationService.error(message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <FormContainer editTarget={editingOrder}>
-      <form className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full" onSubmit={handleSubmit}>
-        <h2 className="text-lg font-semibold sm:col-span-2">
-          {editingOrder ? "Alterar Pedido" : "Lançar Pedido"}
-        </h2>
-
-        <div className="flex flex-col sm:col-span-2">
-          <label className="font-medium mb-1">Cliente</label>
-          <select
-            value={selectedClientId}
-            onChange={(e) => setSelectedClientId(e.target.value)}
-            className="w-full p-2 border rounded"
-            required
-          >
-            <option value="">Selecione um cliente</option>
-            {clients.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+      <form style={{ width: '100%' }} onSubmit={handleSubmit}>
+        {/* Título */}
+        <div style={{
+          marginBottom: 'var(--space-xl)',
+          paddingBottom: 'var(--space-lg)',
+          borderBottom: '1px solid var(--color-border)',
+        }}>
+          <h3 style={{
+            fontSize: 'var(--text-lg)',
+            fontWeight: '700',
+            color: 'var(--color-text)',
+            margin: 0,
+            fontFamily: 'var(--font-display)',
+          }}>
+            {editingOrder ? "✏️ Alterar Pedido" : "➕ Lançar Pedido"}
+          </h3>
         </div>
 
-        <div className="flex flex-col sm:col-span-2">
-          <label className="font-medium mb-1">Status</label>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="w-full p-2 border rounded"
-          >
-            <option value="pendente">Pendente</option>
-            <option value="pago">Pago</option>
-            <option value="enviado">Enviado</option>
-            <option value="concluído">Concluído</option>
-            <option value="cancelado">Cancelado</option>
-          </select>
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-2 sm:col-span-2 items-end">
-          <div className="flex-1">
-            <label className="font-medium mb-1">Produto</label>
+        {/* Grid de formulário */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: 'var(--space-lg)',
+          marginBottom: 'var(--space-2xl)',
+        }}>
+          {/* Cliente */}
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: 'var(--text-sm)',
+              fontWeight: '600',
+              color: 'var(--color-text)',
+              marginBottom: 'var(--space-sm)',
+              fontFamily: 'var(--font-body)',
+            }}>
+              Cliente <span style={{ color: 'var(--color-danger)' }}>*</span>
+            </label>
             <select
-              value={selectedProduct}
-              onChange={(e) => setSelectedProduct(e.target.value)}
-              className="w-full p-2 border rounded font-medium"
+              value={selectedClientId}
+              onChange={(e) => setSelectedClientId(e.target.value)}
+              required
+              style={{
+                width: '100%',
+                padding: 'var(--space-md) var(--space-lg)',
+                backgroundColor: 'var(--color-surface2)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-md)',
+                color: 'var(--color-text)',
+                fontFamily: 'var(--font-body)',
+                fontSize: 'var(--text-base)',
+                cursor: 'pointer',
+                transition: 'all 150ms ease',
+              }}
             >
-              <option value="" className="text-gray-500 font-normal">
-                Selecione um produto
-              </option>
-
-              {products.map((p) => (
-                <option
-                  key={p.id}
-                  value={p.id}
-                  className={`
-        font-semibold
-        ${p.stock_quantity <= 0 ? "text-red-500" : ""}
-        ${p.stock_quantity > 0 && p.stock_quantity <= 5 ? "text-yellow-600" : ""}
-        ${p.stock_quantity > 5 ? "text-green-700" : ""}
-      `}
-                  disabled={p.stock_quantity <= 0} // opcional
-                >
-                  {p.name} —
-                  Estoque: {p.stock_quantity} | R${Number(p.price).toFixed(2)}
+              <option value="">Selecione um cliente...</option>
+              {clients.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
                 </option>
               ))}
             </select>
           </div>
 
-          <div className="w-24">
-            <label className="font-medium mb-1">Qtd</label>
-            <input
+          {/* Status */}
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: 'var(--text-sm)',
+              fontWeight: '600',
+              color: 'var(--color-text)',
+              marginBottom: 'var(--space-sm)',
+              fontFamily: 'var(--font-body)',
+            }}>
+              Status
+            </label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              style={{
+                width: '100%',
+                padding: 'var(--space-md) var(--space-lg)',
+                backgroundColor: 'var(--color-surface2)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-md)',
+                color: 'var(--color-text)',
+                fontFamily: 'var(--font-body)',
+                fontSize: 'var(--text-base)',
+                cursor: 'pointer',
+                transition: 'all 150ms ease',
+              }}
+            >
+              <option value="pendente">Pendente</option>
+              <option value="pago">Pago</option>
+              <option value="enviado">Enviado</option>
+              <option value="entregue">Entregue</option>
+              <option value="concluído">Concluído</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Adicionar Produtos */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'auto auto 1fr',
+          gap: 'var(--space-md)',
+          alignItems: 'flex-end',
+          marginBottom: 'var(--space-2xl)',
+          padding: 'var(--space-lg)',
+          backgroundColor: 'var(--color-surface2)',
+          borderRadius: 'var(--radius-md)',
+          border: '1px solid var(--color-border)',
+        }}>
+          {/* Seletor de Produto */}
+          <div style={{ flex: 1 }}>
+            <label style={{
+              display: 'block',
+              fontSize: 'var(--text-sm)',
+              fontWeight: '600',
+              color: 'var(--color-text)',
+              marginBottom: 'var(--space-sm)',
+            }}>
+              Produto
+            </label>
+            <select
+              value={selectedProduct}
+              onChange={(e) => setSelectedProduct(e.target.value)}
+              style={{
+                width: '100%',
+                padding: 'var(--space-md) var(--space-lg)',
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--color-text)',
+                fontFamily: 'var(--font-body)',
+                fontSize: 'var(--text-sm)',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="">Selecione...</option>
+              {products.map((p) => (
+                <option
+                  key={p.id}
+                  value={p.id}
+                  disabled={p.stock_quantity <= 0}
+                >
+                  {p.name} — Est: {p.stock_quantity}, R${Number(p.price).toFixed(2)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Quantidade */}
+          <div style={{ width: '100px' }}>
+            <label style={{
+              display: 'block',
+              fontSize: 'var(--text-sm)',
+              fontWeight: '600',
+              color: 'var(--color-text)',
+              marginBottom: 'var(--space-sm)',
+            }}>
+              Qtd
+            </label>
+            <Input
               type="number"
               min="1"
               value={quantity}
               onChange={(e) => setQuantity(Number(e.target.value))}
-              className="w-full p-2 border rounded"
+              style={{ width: '100%' }}
             />
           </div>
 
-          <button
+          {/* Botão Adicionar */}
+          <Button
             type="button"
             onClick={handleAddItem}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+            variant="info"
+            size="md"
+            style={{ whiteSpace: 'nowrap' }}
           >
-            Adicionar
-          </button>
+            + Adicionar
+          </Button>
         </div>
 
+        {/* Tabela de Itens */}
         {items.length > 0 && (
-          <div className="sm:col-span-2 overflow-x-auto">
-            <table className="w-full border-collapse border mt-4 bg-white">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="px-4 py-2">Produto</th>
-                  <th className="px-4 py-2">Qtd</th>
-                  <th className="px-4 py-2">Preço</th>
-                  <th className="px-4 py-2">Total</th>
-                  <th className="px-4 py-2">Remover</th>
+          <div style={{
+            marginBottom: 'var(--space-2xl)',
+            overflowX: 'auto',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--color-border)',
+            backgroundColor: 'var(--color-surface)',
+          }}>
+            <table style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              fontSize: 'var(--text-sm)',
+            }}>
+              <thead>
+                <tr style={{
+                  backgroundColor: 'var(--color-surface2)',
+                  borderBottom: '2px solid var(--color-border)',
+                }}>
+                  <th style={{
+                    padding: 'var(--space-md) var(--space-lg)',
+                    textAlign: 'left',
+                    fontWeight: '600',
+                    color: 'var(--color-text)',
+                  }}>
+                    Produto
+                  </th>
+                  <th style={{
+                    padding: 'var(--space-md) var(--space-lg)',
+                    textAlign: 'center',
+                    fontWeight: '600',
+                    color: 'var(--color-text)',
+                  }}>
+                    Qtd
+                  </th>
+                  <th style={{
+                    padding: 'var(--space-md) var(--space-lg)',
+                    textAlign: 'right',
+                    fontWeight: '600',
+                    color: 'var(--color-text)',
+                  }}>
+                    Preço
+                  </th>
+                  <th style={{
+                    padding: 'var(--space-md) var(--space-lg)',
+                    textAlign: 'right',
+                    fontWeight: '600',
+                    color: 'var(--color-text)',
+                  }}>
+                    Total
+                  </th>
+                  <th style={{
+                    padding: 'var(--space-md) var(--space-lg)',
+                    textAlign: 'center',
+                    fontWeight: '600',
+                    color: 'var(--color-text)',
+                  }}>
+                    Ação
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {items.map((item, i) => (
-                  <tr key={i} className="border-b hover:bg-gray-50">
-                    <td className="px-4 py-2">{products.find(p => p.id === item.product_id)?.name || "—"}</td>
-                    <td className="px-4 py-2">
-                      <input
-                        type="number"
-                        min="1"
-                        value={item.quantity}
-                        onChange={(e) => {
-                          const newQty = Number(e.target.value);
-                          const product = products.find((p) => p.id === item.product_id);
+                {items.map((item, i) => {
+                  const product = products.find(p => p.id === item.product_id);
+                  const itemTotal = item.price * item.quantity;
+                  return (
+                    <tr 
+                      key={i} 
+                      style={{
+                        borderBottom: '1px solid var(--color-border)',
+                        transition: 'all 150ms ease',
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface2)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <td style={{
+                        padding: 'var(--space-md) var(--space-lg)',
+                        color: 'var(--color-text)',
+                      }}>
+                        {product?.name || "—"}
+                      </td>
+                      <td style={{
+                        padding: 'var(--space-md) var(--space-lg)',
+                        textAlign: 'center',
+                      }}>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={item.quantity}
+                          onChange={(e) => {
+                            const newQty = Number(e.target.value);
+                            const product = products.find((p) => p.id === item.product_id);
 
-                          if (!product) return;
+                            if (!product) return;
 
-                          // quantidade disponível no estoque
-                          const currentStock = product.stock_quantity ?? product.stock ?? 0;
+                            const currentStock = product.stock_quantity ?? product.stock ?? 0;
+                            const reserved = item.reserved_quantity || 0;
+                            const available = currentStock + reserved;
 
-                          // quantidade originalmente reservada neste pedido (quando veio do banco)
-                          const reserved = item.reserved_quantity || 0;
+                            if (newQty > available) {
+                              notificationService.error(`Máximo permitido: ${available}`);
+                              return;
+                            }
 
-                          // estoque disponível real nesta edição
-                          const available = currentStock + reserved;
-
-                          if (newQty > available) {
-                            alert(`Estoque insuficiente! Máximo permitido: ${available}`);
-                            return;
-                          }
-
-                          setItems((prev) =>
-                            prev.map((it, idx) =>
-                              idx === i ? { ...it, quantity: newQty } : it
-                            )
-                          );
-                        }}
-                        className="w-20 p-1 border rounded text-center"
-                      />
-                    </td>
-                    <td className="px-4 py-2">R${item.price.toFixed(2)}</td>
-                    <td className="px-4 py-2">R${(item.price * item.quantity).toFixed(2)}</td>
-                    <td className="px-4 py-2">
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveItem(i)}
-                        className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition"
-                      >
-                        X
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                            setItems((prev) =>
+                              prev.map((it, idx) =>
+                                idx === i ? { ...it, quantity: newQty } : it
+                              )
+                            );
+                          }}
+                          style={{ width: '60px', textAlign: 'center' }}
+                        />
+                      </td>
+                      <td style={{
+                        padding: 'var(--space-md) var(--space-lg)',
+                        textAlign: 'right',
+                        color: 'var(--color-text)',
+                      }}>
+                        R${Number(item.price).toFixed(2)}
+                      </td>
+                      <td style={{
+                        padding: 'var(--space-md) var(--space-lg)',
+                        textAlign: 'right',
+                        fontWeight: '600',
+                        color: 'var(--color-text)',
+                      }}>
+                        R${Number(itemTotal).toFixed(2)}
+                      </td>
+                      <td style={{
+                        padding: 'var(--space-md) var(--space-lg)',
+                        textAlign: 'center',
+                      }}>
+                        <Button
+                          type="button"
+                          onClick={() => handleRemoveItem(i)}
+                          variant="danger"
+                          size="sm"
+                        >
+                          🗑
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
 
-        <div className="sm:col-span-2 text-right text-lg font-semibold">
-          Total: R$
-          {items.reduce((sum, i) => sum + i.quantity * i.price, 0).toFixed(2)}
+        {/* Total */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          marginBottom: 'var(--space-2xl)',
+          paddingTop: 'var(--space-lg)',
+          borderTop: '2px solid var(--color-border)',
+        }}>
+          <div style={{
+            fontSize: 'var(--text-lg)',
+            fontWeight: '700',
+            color: 'var(--color-text)',
+          }}>
+            Total: R${items.reduce((sum, i) => sum + i.quantity * i.price, 0).toFixed(2)}
+          </div>
         </div>
 
-        <div className="sm:col-span-2 flex gap-2 justify-end">
-          <button
-            type="submit"
-            className={`${editingOrder ? "bg-yellow-500 hover:bg-yellow-600" : "bg-green-500 hover:bg-green-600"
-              } text-white px-4 py-2 rounded transition w-full sm:w-auto`}
-          >
-            {editingOrder ? "Atualizar Pedido" : "Criar Pedido"}
-          </button>
+        {/* Botões de Ação */}
+        <div style={{
+          display: 'flex',
+          gap: 'var(--space-md)',
+          justifyContent: 'flex-end',
+          flexWrap: 'wrap',
+        }}>
           {editingOrder && (
-            <button
+            <Button
               type="button"
               onClick={onCancel}
-              className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 w-full sm:w-auto"
+              variant="secondary"
+              disabled={isSubmitting}
             >
-              Cancelar
-            </button>
+              ✕ Cancelar
+            </Button>
           )}
+          <Button
+            type="submit"
+            variant={editingOrder ? "warning" : "success"}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Processando..." : (editingOrder ? "✓ Atualizar" : "✓ Criar")}
+          </Button>
         </div>
       </form>
     </FormContainer>
