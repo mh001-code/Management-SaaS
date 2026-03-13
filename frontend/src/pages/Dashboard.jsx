@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import api from "../services/api";
+import { formatCurrency } from "../utils/formatCurrency";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
@@ -66,7 +67,7 @@ const Dashboard = () => {
   const STAT_CARDS = [
     { id: 1, icon: "📦", label: "Total de Pedidos", value: totalOrders, accent: "#4f6ef7", delay: "fade-up-1" },
     { id: 2, icon: "👥", label: "Clientes Ativos", value: totalClients, accent: "#06b6d4", delay: "fade-up-2" },
-    { id: 3, icon: "💰", label: "Receita Total", value: `R$ ${totalRevenue}`, accent: "#a78bfa", delay: "fade-up-3" },
+    { id: 3, icon: "💰", label: "Receita Total", value: formatCurrency(totalRevenue), accent: "#a78bfa", delay: "fade-up-3" },
   ];
 
   return (

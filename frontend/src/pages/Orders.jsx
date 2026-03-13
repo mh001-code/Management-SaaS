@@ -5,6 +5,7 @@ import api from "../services/api";
 import errorService from "../services/errorService";
 import notificationService from "../services/notificationService";
 import { useAuth } from "../contexts/AuthContext";
+import { formatCurrency } from "../utils/formatCurrency";
 import DataTable from "../components/DataTable";
 import OrderForm from "../components/OrderForm";
 import Card from "../components/ui/Card";
@@ -173,7 +174,7 @@ const Orders = () => {
                   { 
                     key: "total_amount", 
                     label: "Total",
-                    render: (value) => `R$ ${Number(value).toFixed(2)}`
+                    render: (value) => formatCurrency(value)
                   },
                   {
                     key: "status",

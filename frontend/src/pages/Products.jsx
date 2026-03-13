@@ -5,6 +5,7 @@ import api from "../services/api";
 import errorService from "../services/errorService";
 import notificationService from "../services/notificationService";
 import { useAuth } from "../contexts/AuthContext";
+import { formatCurrency } from "../utils/formatCurrency";
 import DataTable from "../components/DataTable";
 import DataForm from "../components/DataForm";
 import Card from "../components/ui/Card";
@@ -211,7 +212,7 @@ const Products = () => {
                   {
                     key: "price",
                     label: "Preço",
-                    render: (value) => `R$ ${Number(value).toFixed(2)}`,
+                    render: (value) => formatCurrency(value),
                   },
                   { key: "stock_quantity", label: "Estoque" },
                 ]}

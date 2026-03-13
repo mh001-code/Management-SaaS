@@ -5,6 +5,7 @@ import Input from "./ui/Input";
 import api from "../services/api";
 import notificationService from "../services/notificationService";
 import errorService from "../services/errorService";
+import { formatCurrency, formatCurrencyValue } from "../utils/formatCurrency";
 
 const OrderForm = ({ onOrderCreated, editingOrder, onCancel }) => {
   const [clients, setClients] = useState([]);
@@ -277,7 +278,7 @@ const OrderForm = ({ onOrderCreated, editingOrder, onCancel }) => {
                   value={p.id}
                   disabled={p.stock_quantity <= 0}
                 >
-                  {p.name} — Est: {p.stock_quantity}, R${Number(p.price).toFixed(2)}
+                  {p.name} — Est: {p.stock_quantity}, {formatCurrencyValue(p.price)}
                 </option>
               ))}
             </select>
@@ -433,7 +434,7 @@ const OrderForm = ({ onOrderCreated, editingOrder, onCancel }) => {
                         textAlign: 'right',
                         color: 'var(--color-text)',
                       }}>
-                        R${Number(item.price).toFixed(2)}
+                        {formatCurrency(item.price)}
                       </td>
                       <td style={{
                         padding: 'var(--space-md) var(--space-lg)',
@@ -441,7 +442,7 @@ const OrderForm = ({ onOrderCreated, editingOrder, onCancel }) => {
                         fontWeight: '600',
                         color: 'var(--color-text)',
                       }}>
-                        R${Number(itemTotal).toFixed(2)}
+                        {formatCurrency(itemTotal)}
                       </td>
                       <td style={{
                         padding: 'var(--space-md) var(--space-lg)',
@@ -477,7 +478,7 @@ const OrderForm = ({ onOrderCreated, editingOrder, onCancel }) => {
             fontWeight: '700',
             color: 'var(--color-text)',
           }}>
-            Total: R${items.reduce((sum, i) => sum + i.quantity * i.price, 0).toFixed(2)}
+            Total: {formatCurrency(items.reduce((sum, i) => sum + i.quantity * i.price, 0))}
           </div>
         </div>
 
