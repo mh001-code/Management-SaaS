@@ -7,7 +7,18 @@ import {
   PieChart, Pie, Cell, Legend,
 } from "recharts";
 
-const COLORS = ["#4f6ef7", "#06b6d4", "#a78bfa", "#f59e0b"];
+/* Mapa de cores para status - mesmo do Orders.jsx */
+const STATUS_COLORS = {
+  pendente: "#f59e0b",
+  pago: "#22c55e",
+  enviado: "#3b82f6",
+  entregue: "#4f6ef7",
+  concluído: "#22c55e",
+  cancelado: "#ef4444",
+  estornado: "#f97316",
+  recusado: "#dc2626",
+  completed: "#22c55e", // Em caso de status em inglês
+};
 
 /* Custom Tooltip */
 const CustomTooltip = ({ active, payload, label }) => {
@@ -167,21 +178,25 @@ const Dashboard = () => {
                 <div className="chart-card animate-fadeUp fade-up-2">
                   <div className="chart-header">
                     <div className="chart-title">📊 Distribuição de Pedidos</div>
-                    <span className="chart-meta">Por status</span>
+                    <span className="chart-meta">
+                      {summary?.ordersByStatus?.length || 0} status
+                    </span>
                   </div>
                   {summary?.ordersByStatus?.length > 0 ? (
                     <div style={{ display: "flex", justifyContent: "center" }}>
                       <ResponsiveContainer width="100%" height={260}>
                         <PieChart>
                           <Pie data={summary.ordersByStatus} dataKey="count" nameKey="status" cx="50%" cy="50%" outerRadius={85} innerRadius={55} paddingAngle={5}>
-                            {summary.ordersByStatus.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                            {summary.ordersByStatus.map((entry, i) => (
+                              <Cell key={i} fill={STATUS_COLORS[entry.status] || "#a78bfa"} />
+                            ))}
                           </Pie>
                           <Legend verticalAlign="bottom" height={30} formatter={(v) => <span style={{ color: "rgba(255,255,255,0.7)", fontSize: 12, fontWeight: 500 }}>{v}</span>} />
                           <Tooltip content={<CustomTooltip />} />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
-                  ) : <div className="chart-empty">Sem dados</div>}
+                  ) : <div className="chart-empty">Sem dados de status</div>}
                 </div>
               </div>
 

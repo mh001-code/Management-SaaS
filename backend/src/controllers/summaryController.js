@@ -11,7 +11,7 @@ export const getSummary = async (req, res, next) => {
     // Total de pedidos e receita
     const ordersRes = await pool.query(`SELECT COUNT(*) AS total_orders, COALESCE(SUM(total), 0) AS total_sales FROM orders ${dateFilter}`);
     const totalOrders = Number(ordersRes.rows[0]?.total_orders) || 0;
-    const totalSales = (ordersRes.rows[0]?.total_sales || 0).toFixed(2);
+    const totalSales = Number(ordersRes.rows[0]?.total_sales || 0).toFixed(2);
 
     // Total de clientes
     const clientsRes = await pool.query(`SELECT COUNT(*) AS total_clients FROM clients`);
@@ -26,7 +26,10 @@ export const getSummary = async (req, res, next) => {
       ORDER BY sold DESC
       LIMIT 5
     `);
-    const topProducts = topProductsRes.rows;
+    const topProducts = topProductsRes.rows.map(row => ({
+      product: row.product,
+      sold: Number(row.sold),
+    }));
 
     // Pedidos por status
     const ordersByStatusRes = await pool.query(`SELECT status, COUNT(*) AS count FROM orders ${dateFilter} GROUP BY status`);
@@ -45,17 +48,24 @@ export const getSummary = async (req, res, next) => {
       ORDER BY orders DESC
       LIMIT 10
     `);
-    const ordersPerClient = topClientsRes.rows;
+    const ordersPerClient = topClientsRes.rows.map(row => ({
+      client: row.client,
+      orders: Number(row.orders),
+    }));
 
-    res.json({
+    const response = {
       totalOrders,
       totalClients,
       totalSales,
       topProducts,
       ordersByStatus,
       ordersPerClient,
-    });
+    };
+
+    res.json(response);
   } catch (err) {
+    console.error("❌ getSummary ERROR:", err.message);
+    console.error("Stack:", err.stack);
     next(err);
   }
 };

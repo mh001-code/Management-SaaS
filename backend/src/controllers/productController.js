@@ -37,12 +37,9 @@ export const createProduct = async (req, res, next) => {
     // 1️⃣ Cria produto
     const product = await ProductModel.createProduct({ name, description, price });
 
-    console.log("✏️ Produto criado:", product);
-
     // 2️⃣ Cria registro de estoque, se fornecido
     if (stock_quantity !== undefined) {
       const stock = await StockModel.addStock(product.id, stock_quantity);
-      console.log("🔹 Estoque criado:", stock);
     }
 
     res.status(201).json({ ...product, stock_quantity: stock_quantity || 0 });
@@ -64,13 +61,11 @@ export const updateProduct = async (req, res, next) => {
       error.statusCode = 404;
       return next(error);
     }
-    console.log("✏️ Produto atualizado:", updatedProduct);
 
     // 2️⃣ Atualiza ou cria estoque
     let updatedStock;
     if (stock_quantity !== undefined) {
       updatedStock = await StockModel.upsertStock(productId, stock_quantity);
-      console.log("🔹 Estoque atualizado:", updatedStock);
     }
 
     // 3️⃣ Retorna produto com estoque atualizado

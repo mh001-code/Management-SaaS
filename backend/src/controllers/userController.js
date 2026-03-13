@@ -57,15 +57,12 @@ export const loginUser = async (req, res, next) => {
 
 // 📌 Listar todos os usuários
 export const getUsers = async (req, res, next) => {
-  console.log("[GET USERS] Usuário requisitando:", req.user); // 🔹 log
   if (req.user.role !== "admin") {
-    console.log("[GET USERS] Acesso negado: não é admin");
     return res.status(403).json({ error: "Você não tem permissão para acessar esta página." });
   }
 
   try {
     const users = await UserModel.getAllUsers();
-    console.log("[GET USERS] Usuários retornados:", users.length); // 🔹 log
     res.json(users);
   } catch (err) {
     console.error("[GET USERS] Erro ao buscar usuários:", err);

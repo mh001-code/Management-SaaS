@@ -14,7 +14,6 @@ import { swaggerDocs } from "./docs.js";
 import reportsRoutes from "./routes/reportsRoutes.js";
 import logMiddleware from "./middlewares/logMiddleware.js";
 import logRoutes from "./routes/logRoutes.js";
-import dashboardRoutes from "./routes/dashboardRoutes.js";
 import summaryRoutes from "./routes/summaryRoutes.js";
 
 dotenv.config();
@@ -24,7 +23,16 @@ const PORT = process.env.PORT || 5000;
 app.use(morgan("dev"));
 app.use(cors());
 app.use(express.json());
-app.use("/api", dashboardRoutes);
+
+// Middleware para desabilitar cache em todas as rotas API
+app.use("/api", (req, res, next) => {
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
+  res.set("ETag", false);
+  next();
+});
+
 app.use("/api/summary", summaryRoutes);
 
 // Testar conexão com o banco
