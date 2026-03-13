@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 
 // Design System
 import "./theme/theme.css";
+import "./styles/globals.css";
 import "./index.css";
 
 // Lazy load das páginas para code-splitting

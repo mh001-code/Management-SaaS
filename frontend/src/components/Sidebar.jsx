@@ -30,7 +30,12 @@ const Sidebar = () => {
       {/* Botão Hamburger Mobile */}
       {showHamburger && !mobileOpen && (
         <button
-          className="fixed top-4 left-4 z-50 md:hidden bg-gray-800 text-white p-2 rounded focus:outline-none shadow transition-transform duration-300 hover:scale-110"
+          className="fixed top-4 left-4 z-50 md:hidden p-2 rounded focus:outline-none shadow transition-transform duration-300 hover:scale-110"
+          style={{
+            background: "var(--color-surface2)",
+            color: "var(--color-text)",
+            border: "1px solid var(--color-border)",
+          }}
           onClick={handleOpenMobile}
         >
           <FaBars size={20} />
@@ -46,67 +51,117 @@ const Sidebar = () => {
           height: "100vh",
           zIndex: 20,
           flexShrink: 0,
-          backgroundColor: "#1f2937",
-          color: "white",
+          background: "linear-gradient(180deg, var(--color-surface2) 0%, var(--color-surface) 100%)",
+          color: "var(--color-text)",
           display: "flex",
           flexDirection: "column",
           width: collapsed ? "80px" : "256px",
-          transition: "width 0.3s ease",
+          transition: "width 300ms ease",
           overflowY: "auto",
-          borderRight: "1px solid #374151",
+          borderRight: "1px solid var(--color-border)",
+          backdropFilter: "blur(10px)",
         }}
         className="sidebar-desktop"
       >
-        <div className="flex justify-between items-center p-4 border-b border-gray-700">
-          {!collapsed && <h2 className="text-2xl font-bold transition-opacity duration-300">Painel</h2>}
+        {/* Header */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "var(--space-lg)",
+            borderBottom: "1px solid var(--color-border)",
+            background: "rgba(0, 0, 0, 0.2)",
+          }}
+        >
+          {!collapsed && (
+            <h2
+              style={{
+                fontSize: "var(--text-2xl)",
+                fontWeight: 700,
+                margin: 0,
+                fontFamily: "var(--font-display)",
+                letterSpacing: "-0.5px",
+                transition: "opacity 300ms ease",
+              }}
+            >
+              Painel
+            </h2>
+          )}
           <button
-            className={`text-white focus:outline-none transform transition-transform duration-300 ${
-              collapsed ? "rotate-180" : "rotate-0"
-            }`}
-            onClick={() => setCollapsed(!collapsed)}
             style={{
               background: "none",
               border: "none",
+              color: "var(--color-text)",
               cursor: "pointer",
-              padding: "4px 8px",
+              padding: "var(--space-sm)",
+              fontSize: "18px",
+              transition: "transform 300ms ease, color 300ms ease",
+              borderRadius: "var(--radius-md)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
+            onClick={() => setCollapsed(!collapsed)}
+            onMouseEnter={(e) => (e.target.style.color = "var(--color-primary)")}
+            onMouseLeave={(e) => (e.target.style.color = "var(--color-text)")}
           >
-            <FaBars size={20} />
+            <FaBars size={18} style={{ transform: collapsed ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 300ms ease" }} />
           </button>
         </div>
-        <nav style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "8px",
-          marginTop: "16px",
-          paddingLeft: "8px",
-          paddingRight: "8px",
-          overflowY: "auto",
-          flex: 1,
-        }}>
+
+        {/* Navigation */}
+        <nav
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-sm)",
+            marginTop: "var(--space-lg)",
+            paddingLeft: "var(--space-sm)",
+            paddingRight: "var(--space-sm)",
+            overflowY: "auto",
+            flex: 1,
+          }}
+        >
           {links.map((link, index) => (
             <NavLink
               key={link.path}
               to={link.path}
-              className={({ isActive }) =>
-                `flex items-center gap-3 p-2 rounded hover:bg-gray-700 transition-all duration-300 transform hover:scale-105 ${
-                  isActive ? "bg-gray-700" : ""
-                }`
-              }
-              style={{ 
-                transitionDelay: `${index * 50}ms`,
+              style={({ isActive }) => ({
                 display: "flex",
                 alignItems: "center",
-                gap: "12px",
-                padding: "8px",
-                borderRadius: "6px",
+                gap: "var(--space-md)",
+                padding: "var(--space-md)",
+                borderRadius: "var(--radius-lg)",
                 textDecoration: "none",
-                color: "white",
+                color: isActive ? "var(--color-primary)" : "var(--color-text)",
                 cursor: "pointer",
+                transition: "all 300ms ease",
+                background: isActive ? "rgba(79, 110, 247, 0.15)" : "transparent",
+                border: isActive ? "1px solid rgba(79, 110, 247, 0.3)" : "1px solid transparent",
+                fontSize: "var(--text-sm)",
+                fontWeight: isActive ? 600 : 500,
+                fontFamily: "var(--font-body)",
+                transitionDelay: `${index * 50}ms`,
+                opacity: collapsed ? (isActive ? 1 : 0.7) : 1,
+              })}
+              onMouseEnter={(e) => {
+                if (!e.currentTarget.classList.contains("active")) {
+                  e.currentTarget.style.background = "rgba(79, 110, 247, 0.1)";
+                  e.currentTarget.style.transform = "translateX(4px)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!e.currentTarget.classList.contains("active")) {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.transform = "translateX(0)";
+                }
               }}
             >
-              <span className="text-lg">{link.icon}</span>
-              {!collapsed && <span>{link.name}</span>}
+              <span style={{ fontSize: "18px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {link.icon}
+              </span>
+              {!collapsed && <span style={{ whiteSpace: "nowrap" }}>{link.name}</span>}
             </NavLink>
           ))}
         </nav>
@@ -114,33 +169,118 @@ const Sidebar = () => {
 
       {/* Sidebar Mobile */}
       <aside
-        className={`fixed top-0 left-0 h-full bg-gray-800 text-white z-40 w-64 transform transition-transform duration-300 ease-in-out md:hidden
-          ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          height: "100%",
+          background: "linear-gradient(180deg, var(--color-surface2) 0%, var(--color-surface) 100%)",
+          color: "var(--color-text)",
+          zIndex: 40,
+          width: "256px",
+          transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
+          transition: "transform 300ms ease-in-out",
+          display: "flex",
+          flexDirection: "column",
+          borderRight: "1px solid var(--color-border)",
+          backdropFilter: "blur(10px)",
+        }}
       >
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-2xl font-bold transition-opacity duration-300">Painel</h2>
-          <button
-            className="text-white focus:outline-none transition-transform duration-300 hover:rotate-90"
-            onClick={handleCloseMobile}
+        {/* Header Mobile */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "var(--space-lg)",
+            borderBottom: "1px solid var(--color-border)",
+            background: "rgba(0, 0, 0, 0.2)",
+          }}
+        >
+          <h2
+            style={{
+              fontSize: "var(--text-2xl)",
+              fontWeight: 700,
+              margin: 0,
+              fontFamily: "var(--font-display)",
+              letterSpacing: "-0.5px",
+            }}
           >
-            <FaBars size={20} />
+            Painel
+          </h2>
+          <button
+            style={{
+              background: "none",
+              border: "none",
+              color: "var(--color-text)",
+              cursor: "pointer",
+              padding: "var(--space-sm)",
+              fontSize: "18px",
+              transition: "color 300ms ease, transform 300ms ease",
+              borderRadius: "var(--radius-md)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            onClick={handleCloseMobile}
+            onMouseEnter={(e) => (e.target.style.color = "var(--color-primary)")}
+            onMouseLeave={(e) => (e.target.style.color = "var(--color-text)")}
+          >
+            <FaBars size={18} />
           </button>
         </div>
 
-        <nav className="flex flex-col gap-2 mt-4 px-2">
+        {/* Navigation Mobile */}
+        <nav
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-sm)",
+            marginTop: "var(--space-lg)",
+            paddingLeft: "var(--space-sm)",
+            paddingRight: "var(--space-sm)",
+            flex: 1,
+            overflowY: "auto",
+          }}
+        >
           {links.map((link, index) => (
             <NavLink
               key={link.path}
               to={link.path}
-              className={({ isActive }) =>
-                `flex items-center gap-3 p-2 rounded hover:bg-gray-700 transition-all duration-300 transform hover:scale-105 ${
-                  isActive ? "bg-gray-700" : ""
-                }`
-              }
-              style={{ transitionDelay: `${index * 50}ms` }}
+              style={({ isActive }) => ({
+                display: "flex",
+                alignItems: "center",
+                gap: "var(--space-md)",
+                padding: "var(--space-md)",
+                borderRadius: "var(--radius-lg)",
+                textDecoration: "none",
+                color: isActive ? "var(--color-primary)" : "var(--color-text)",
+                cursor: "pointer",
+                transition: "all 300ms ease",
+                background: isActive ? "rgba(79, 110, 247, 0.15)" : "transparent",
+                border: isActive ? "1px solid rgba(79, 110, 247, 0.3)" : "1px solid transparent",
+                fontSize: "var(--text-sm)",
+                fontWeight: isActive ? 600 : 500,
+                fontFamily: "var(--font-body)",
+                transitionDelay: `${index * 50}ms`,
+              })}
               onClick={handleCloseMobile}
+              onMouseEnter={(e) => {
+                if (!e.currentTarget.classList.contains("active")) {
+                  e.currentTarget.style.background = "rgba(79, 110, 247, 0.1)";
+                  e.currentTarget.style.transform = "translateX(4px)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!e.currentTarget.classList.contains("active")) {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.transform = "translateX(0)";
+                }
+              }}
             >
-              <span className="text-lg">{link.icon}</span>
+              <span style={{ fontSize: "18px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {link.icon}
+              </span>
               <span>{link.name}</span>
             </NavLink>
           ))}
@@ -149,9 +289,16 @@ const Sidebar = () => {
 
       {/* Overlay Mobile */}
       <div
-        className={`fixed inset-0 bg-black z-30 md:hidden transition-opacity duration-300 ${
-          mobileOpen ? "opacity-30 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0, 0, 0, 0.4)",
+          zIndex: 30,
+          opacity: mobileOpen ? 1 : 0,
+          pointerEvents: mobileOpen ? "auto" : "none",
+          transition: "opacity 300ms ease",
+        }}
+        className="md:hidden"
         onClick={handleCloseMobile}
       />
     </>

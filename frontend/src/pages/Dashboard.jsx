@@ -8,18 +8,18 @@ import {
 
 const COLORS = ["#4f6ef7", "#06b6d4", "#a78bfa", "#f59e0b"];
 
-/* ─── Custom Tooltip ─── */
+/* Custom Tooltip */
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div style={{
-        background: "#17171f", border: "1px solid rgba(255,255,255,0.08)",
+        background: "#17171f", border: "1px solid rgba(255,255,255,0.1)",
         borderRadius: 8, padding: "10px 14px", fontFamily: "'DM Sans',sans-serif",
-        fontSize: 13, color: "#e8e8f0",
+        fontSize: 12, color: "#e8e8f0", boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
       }}>
-        <div style={{ color: "rgba(255,255,255,0.45)", marginBottom: 4 }}>{label}</div>
+        <div style={{ color: "rgba(255,255,255,0.5)", marginBottom: 4, fontSize: 11 }}>{label}</div>
         {payload.map((p, i) => (
-          <div key={i} style={{ color: p.color || "#4f6ef7", fontWeight: 600 }}>
+          <div key={i} style={{ color: p.color || "#4f6ef7", fontWeight: 600, fontSize: 13 }}>
             {p.name}: {p.value}
           </div>
         ))}
@@ -29,7 +29,6 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-/* ─── Dashboard page ─── */
 const Dashboard = () => {
   const { user, logout } = useAuth();
   const [summary, setSummary] = useState(null);
@@ -65,109 +64,154 @@ const Dashboard = () => {
   const totalRevenue = summary?.totalSales || "0.00";
 
   const STAT_CARDS = [
-    { icon: "📦", label: "Total de Pedidos", value: totalOrders, accent: "#4f6ef7", delay: "fade-up-1" },
-    { icon: "👥", label: "Clientes Ativos", value: totalClients, accent: "#06b6d4", delay: "fade-up-2" },
-    { icon: "💰", label: "Receita Total", value: `R$ ${totalRevenue}`, accent: "#a78bfa", delay: "fade-up-3" },
+    { id: 1, icon: "📦", label: "Total de Pedidos", value: totalOrders, accent: "#4f6ef7", delay: "fade-up-1" },
+    { id: 2, icon: "👥", label: "Clientes Ativos", value: totalClients, accent: "#06b6d4", delay: "fade-up-2" },
+    { id: 3, icon: "💰", label: "Receita Total", value: `R$ ${totalRevenue}`, accent: "#a78bfa", delay: "fade-up-3" },
   ];
 
   return (
     <div className="main-content">
-          <div className="topbar">
-            <div className="topbar-title">Dashboard</div>
-            <div className="topbar-right">
-              <div className="date-filter">
-                <span className="date-label">De</span>
-                <input type="date" className="date-input" value={dateRange.from}
-                  onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })} />
-                <span className="date-label">Até</span>
-                <input type="date" className="date-input" value={dateRange.to}
-                  onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })} />
-                <button className="btn btn-primary btn-sm" onClick={() => { setLoading(true); fetchSummary(); }}>
-                  Filtrar
-                </button>
-              </div>
-            </div>
+      {/* Topbar */}
+      <div className="topbar">
+        <div>
+          <div className="topbar-title">📊 Dashboard</div>
+          <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "var(--text-sm)", margin: 0, marginTop: "var(--space-xs)" }}>
+            Visão completa do seu negócio
+          </p>
+        </div>
+        <div className="topbar-right">
+          <div className="date-filter">
+            <span className="date-label">De</span>
+            <input type="date" className="date-input" value={dateRange.from}
+              onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })} />
+            <span className="date-label">Até</span>
+            <input type="date" className="date-input" value={dateRange.to}
+              onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })} />
+            <button className="btn btn-primary btn-sm" onClick={() => { setLoading(true); fetchSummary(); }}>
+              Aplicar
+            </button>
           </div>
+        </div>
+      </div>
 
-          <div className="page-body">
-            {loading ? (
-              <div className="loading-center">
-                <div className="spinner-ring" />
-                <span>Carregando dados...</span>
+      {/* Body */}
+      <div className="page-body">
+        {loading ? (
+          <div className="loading-center">
+            <div className="spinner-ring" />
+            <span>Carregando dashboard...</span>
+          </div>
+        ) : error ? (
+          <div className="empty-state">
+            <div className="empty-state-icon">⚠️</div>
+            <div className="empty-state-text" style={{ color: "#f87171" }}>{error}</div>
+          </div>
+        ) : (
+          <>
+            {/* KPI Section */}
+            <section className="dashboard-section">
+              <div className="section-header">
+                <h2 className="section-title">Indicadores Principais</h2>
+                <p className="section-subtitle">KPIs principais do período</p>
               </div>
-            ) : error ? (
-              <div className="empty-state">
-                <div className="empty-state-icon">⚠️</div>
-                <div className="empty-state-text" style={{ color: "#f87171" }}>{error}</div>
-              </div>
-            ) : (
-              <>
-                {/* Stat cards */}
-                <div className="stat-grid">
-                  {STAT_CARDS.map((card) => (
-                    <div key={card.label} className={`stat-card animate-fadeUp`}>
-                      <div className="stat-accent-line" style={{ background: card.accent }} />
+              <div className="stat-grid">
+                {STAT_CARDS.map((card) => (
+                  <div key={card.id} className={`stat-card animate-fadeUp ${card.delay}`}>
+                    <div className="stat-accent-line" style={{ background: card.accent }} />
+                    <div className="stat-header">
                       <span className="stat-card-icon">{card.icon}</span>
-                      <div className="stat-card-label">{card.label}</div>
-                      <div className="stat-card-value">{card.value}</div>
+                      <div className="stat-badge" style={{ background: card.accent }} />
                     </div>
-                  ))}
-                </div>
+                    <div className="stat-card-label">{card.label}</div>
+                    <div className="stat-card-value">{card.value}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
 
-                {/* Charts */}
-                <div className="charts-grid">
-                  <div className="chart-card animate-fadeUp">
-                    <div className="chart-title">Produtos em Estoque</div>
-                    <ResponsiveContainer width="100%" height={220}>
-                      <BarChart data={summary?.topProducts || []} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                        <XAxis dataKey="product" tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 12 }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 12 }} axisLine={false} tickLine={false} />
-                        <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
-                        <Bar dataKey="sold" fill="#4f6ef7" radius={[4, 4, 0, 0]} />
+            {/* Charts Section */}
+            <section className="dashboard-section">
+              <div className="section-header">
+                <h2 className="section-title">Análise de Desempenho</h2>
+                <p className="section-subtitle">Visualize dados e tendências</p>
+              </div>
+
+              {/* Two-column charts */}
+              <div className="charts-grid">
+                {/* Produtos Mais Vendidos */}
+                <div className="chart-card animate-fadeUp fade-up-1">
+                  <div className="chart-header">
+                    <div className="chart-title">📦 Produtos Mais Vendidos</div>
+                    <span className="chart-meta">{summary?.topProducts?.length || 0} produtos</span>
+                  </div>
+                  {summary?.topProducts?.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={260}>
+                      <BarChart data={summary.topProducts} margin={{ top: 15, right: 20, left: -8, bottom: 40 }}>
+                        <defs>
+                          <linearGradient id="barGrad1" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#4f6ef7" stopOpacity={0.95} />
+                            <stop offset="95%" stopColor="#3d52d5" stopOpacity={0.1} />
+                          </linearGradient>
+                        </defs>
+                        <XAxis dataKey="product" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }} axisLine={false} tickLine={false} angle={-45} textAnchor="end" height={80} />
+                        <YAxis tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.05)" }} />
+                        <Bar dataKey="sold" fill="url(#barGrad1)" radius={[8, 8, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
-                  </div>
+                  ) : <div className="chart-empty">Sem dados</div>}
+                </div>
 
-                  <div className="chart-card animate-fadeUp">
-                    <div className="chart-title">Pedidos por Status</div>
-                    {summary?.ordersByStatus?.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={220}>
+                {/* Pedidos por Status */}
+                <div className="chart-card animate-fadeUp fade-up-2">
+                  <div className="chart-header">
+                    <div className="chart-title">📊 Distribuição de Pedidos</div>
+                    <span className="chart-meta">Por status</span>
+                  </div>
+                  {summary?.ordersByStatus?.length > 0 ? (
+                    <div style={{ display: "flex", justifyContent: "center" }}>
+                      <ResponsiveContainer width="100%" height={260}>
                         <PieChart>
-                          <Pie data={summary.ordersByStatus} dataKey="count" nameKey="status"
-                            cx="50%" cy="50%" outerRadius={70} innerRadius={40} paddingAngle={3}>
-                            {summary.ordersByStatus.map((_, i) => (
-                              <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                            ))}
+                          <Pie data={summary.ordersByStatus} dataKey="count" nameKey="status" cx="50%" cy="50%" outerRadius={85} innerRadius={55} paddingAngle={5}>
+                            {summary.ordersByStatus.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                           </Pie>
-                          <Legend verticalAlign="bottom" iconType="circle" iconSize={8}
-                            formatter={(v) => <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 12 }}>{v}</span>} />
+                          <Legend verticalAlign="bottom" height={30} formatter={(v) => <span style={{ color: "rgba(255,255,255,0.7)", fontSize: 12, fontWeight: 500 }}>{v}</span>} />
                           <Tooltip content={<CustomTooltip />} />
                         </PieChart>
                       </ResponsiveContainer>
-                    ) : (
-                      <div className="empty-state">
-                        <div className="empty-state-icon">📊</div>
-                        <div className="empty-state-text">Sem dados disponíveis</div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="chart-card span-2 fade-up fade-up-5">
-                    <div className="chart-title">Pedidos por Cliente</div>
-                    <ResponsiveContainer width="100%" height={220}>
-                      <BarChart data={summary?.ordersPerClient || []} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                        <XAxis dataKey="client" tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 12 }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 12 }} axisLine={false} tickLine={false} />
-                        <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
-                        <Bar dataKey="orders" fill="#06b6d4" radius={[4, 4, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
+                    </div>
+                  ) : <div className="chart-empty">Sem dados</div>}
                 </div>
-              </>
-            )}
-          </div>
-        </div>
+              </div>
+
+              {/* Full-width chart */}
+              <div className="chart-card animate-fadeUp fade-up-3" style={{ marginTop: "var(--space-lg)" }}>
+                <div className="chart-header">
+                  <div className="chart-title">👥 Ranking de Clientes</div>
+                  <span className="chart-meta">{summary?.ordersPerClient?.length || 0} clientes</span>
+                </div>
+                {summary?.ordersPerClient?.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={summary.ordersPerClient} layout="vertical" margin={{ top: 15, right: 30, left: 160, bottom: 15 }}>
+                      <defs>
+                        <linearGradient id="barGrad2" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.95} />
+                          <stop offset="95%" stopColor="#4f6ef7" stopOpacity={0.1} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis type="number" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                      <YAxis type="category" dataKey="client" tick={{ fill: "rgba(255,255,255,0.6)", fontSize: 11 }} axisLine={false} tickLine={false} width={150} />
+                      <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.05)" }} />
+                      <Bar dataKey="orders" fill="url(#barGrad2)" radius={[0, 8, 8, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : <div className="chart-empty">Sem dados</div>}
+              </div>
+            </section>
+          </>
+        )}
+      </div>
+    </div>
   );
 };
 
