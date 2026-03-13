@@ -1,3 +1,276 @@
+/* Main layout */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  transition: background-color 300ms ease;
+}
+
+/* Topbar section */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-lg);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.topbar-title {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--text-light);
+  letter-spacing: -0.5px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.date-filter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: rgba(79, 110, 247, 0.05);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(79, 110, 247, 0.2);
+}
+
+.date-label {
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+.date-input {
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(79, 110, 247, 0.3);
+  border-radius: var(--radius-sm);
+  color: var(--text-light);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.date-input:hover {
+  border-color: rgba(79, 110, 247, 0.6);
+  background: rgba(79, 110, 247, 0.1);
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: #4f6ef7;
+  background: rgba(79, 110, 247, 0.15);
+}
+
+/* Page body */
+.page-body {
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  min-height: calc(100vh - 120px);
+}
+
+/* Stat cards grid */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  transition: all 300ms ease;
+  backdrop-filter: blur(10px);
+}
+
+.stat-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-2px);
+}
+
+.stat-accent-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  opacity: 0.8;
+}
+
+.stat-card-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.stat-card-label {
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-card-value {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--text-light);
+  line-height: 1.2;
+}
+
+/* Charts grid */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: var(--space-md);
+}
+
+.charts-grid .span-2 {
+  grid-column: span 2;
+}
+
+@media (max-width: 1200px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+  .charts-grid .span-2 {
+    grid-column: span 1;
+  }
+}
+
+.chart-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  transition: all 300ms ease;
+  backdrop-filter: blur(10px);
+}
+
+.chart-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-2px);
+}
+
+.chart-title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-light);
+  letter-spacing: -0.3px;
+}
+
+/* Loading and empty states */
+.loading-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  min-height: 400px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: var(--text-base);
+}
+
+.spinner-ring {
+  border: 3px solid rgba(79, 110, 247, 0.2);
+  border-top-color: #4f6ef7;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  min-height: 300px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  text-align: center;
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.empty-state-text {
+  font-size: var(--text-base);
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.5;
+}
+
+/* Button styles */
+.btn {
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 200ms ease;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #4f6ef7 0%, #3d5ce8 100%);
+  color: white;
+  border: 1px solid rgba(79, 110, 247, 0.3);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #5d7dff 0%, #4563f0 100%);
+  transform: translateY(-1px);
+  border-color: rgba(79, 110, 247, 0.6);
+  box-shadow: 0 4px 12px rgba(79, 110, 247, 0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: var(--text-xs);
+}
+
+/* Animation utilities */
 .fade-slide-enter {
   opacity: 0;
   transform: translateY(20px);
@@ -22,4 +295,53 @@
 }
 .animate-fadeIn {
   animation: fadeIn 300ms forwards;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fadeUp {
+  animation: fadeUp 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.fade-up-1 { animation-delay: 100ms; }
+.fade-up-2 { animation-delay: 200ms; }
+.fade-up-3 { animation-delay: 300ms; }
+.fade-up-4 { animation-delay: 400ms; }
+.fade-up-5 { animation-delay: 500ms; }
+
+.fade-up { animation-name: fadeUp; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .topbar-right {
+    width: 100%;
+    flex-direction: column;
+  }
+  
+  .date-filter {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
 }

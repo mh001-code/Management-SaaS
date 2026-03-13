@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { GLOBAL_STYLES } from "../constants/styles";
 import api from "../services/api";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -72,9 +71,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <>
-      <style>{GLOBAL_STYLES}</style>
-      <div className="main-content">
+    <div className="main-content">
           <div className="topbar">
             <div className="topbar-title">Dashboard</div>
             <div className="topbar-right">
@@ -171,7 +168,6 @@ const Dashboard = () => {
             )}
           </div>
         </div>
-    </>
   );
 };
 

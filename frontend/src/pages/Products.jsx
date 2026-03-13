@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useFetch, useSearch, useForm, usePagination } from "../hooks";
 import { API_ENDPOINTS } from "../constants";
-import { GLOBAL_STYLES } from "../constants/styles";
 import api from "../services/api";
 import errorService from "../services/errorService";
 import notificationService from "../services/notificationService";
@@ -123,9 +122,7 @@ const Products = () => {
   }
 
   return (
-    <>
-      <style>{GLOBAL_STYLES}</style>
-      <div className="main-content">
+    <div className="main-content">
           <div className="topbar">
             <div className="topbar-title">Produtos</div>
             <div className="topbar-right">
@@ -294,7 +291,6 @@ const Products = () => {
             </div>
           </div>
         </div>
-    </>
   );
 };
 

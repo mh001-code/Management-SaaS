@@ -26,7 +26,7 @@ const normalizeStatus = (status) => {
 // Criar pedido
 // =================================
 export const createOrder = async (req, res, next) => {
-  const { client_id: clientId, items } = req.body;
+  const { client_id: clientId, items, status } = req.body;
   const userId = req.user.userId;
 
   if (!clientId || !items?.length) {
@@ -51,8 +51,9 @@ export const createOrder = async (req, res, next) => {
       total += item.price * quantity;
     }
 
-    // 2️⃣ Cria pedido
-    const order = await OrderModel.createOrder(Number(clientId), userId, total);
+    // 2️⃣ Cria pedido com status fornecido ou padrão "pendente"
+    const normalizedStatus = normalizeStatus(status) || 'pendente';
+    const order = await OrderModel.createOrder(Number(clientId), userId, total, normalizedStatus);
 
     // 3️⃣ Cria itens (estoque será decrementado apenas ao pagar)
     for (const item of items) {
@@ -186,7 +187,7 @@ export const updateOrderStatus = async (req, res, next) => {
 // Atualizar pedido completo (itens + cliente)
 // =================================
 export const updateOrder = async (req, res, next) => {
-  const { client_id: clientId, items } = req.body;
+  const { client_id: clientId, items, status } = req.body;
   const orderId = req.params.id;
 
   if (!clientId || !items?.length) {
@@ -234,8 +235,9 @@ export const updateOrder = async (req, res, next) => {
       await OrderItemModel.createOrderItem(orderId, productId, quantity, price);
     }
 
-    // 6️⃣ Atualizar pedido (sem alterar status)
-    await OrderModel.updateOrderClientTotalStatus(orderId, clientId, total, order.status);
+    // 6️⃣ Atualizar pedido com status fornecido ou mantém o antigo
+    const newStatus = status ? normalizeStatus(status) : normalizeStatus(order.status);
+    await OrderModel.updateOrderClientTotalStatus(orderId, clientId, total, newStatus);
 
     await OrderModel.commitTransaction();
     res.json({ message: "Pedido atualizado com sucesso" });

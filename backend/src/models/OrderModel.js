@@ -29,13 +29,13 @@ export const rollbackTransaction = async () => {
 };
 
 // Criar pedido dentro da transação
-export const createOrder = async (client_id, user_id, total) => {
+export const createOrder = async (client_id, user_id, total, status = 'pendente') => {
   if (!clientTransaction) throw new Error("Transação não iniciada");
 
   const res = await clientTransaction.query(
     `INSERT INTO orders (client_id, user_id, total, status, created_at)
-     VALUES ($1, $2, $3, 'pendente', NOW()) RETURNING *`,
-    [client_id, user_id, total]
+     VALUES ($1, $2, $3, $4, NOW()) RETURNING *`,
+    [client_id, user_id, total, status]
   );
 
   return res.rows[0];

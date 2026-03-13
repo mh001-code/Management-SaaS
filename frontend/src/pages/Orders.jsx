@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import { useFetch, useSearch, usePagination } from "../hooks";
 import { API_ENDPOINTS } from "../constants";
-import { GLOBAL_STYLES } from "../constants/styles";
 import api from "../services/api";
 import errorService from "../services/errorService";
 import notificationService from "../services/notificationService";
@@ -24,6 +23,18 @@ const Orders = () => {
   const [editingOrder, setEditingOrder] = useState(null);
   const [statusFilter, setStatusFilter] = useState("todos");
 
+  // Mapa de cores para status
+  const STATUS_COLORS = {
+    pendente: { bg: "rgba(245, 158, 11, 0.15)", text: "#f59e0b", label: "Pendente" },
+    pago: { bg: "rgba(34, 197, 94, 0.15)", text: "#22c55e", label: "Pago" },
+    enviado: { bg: "rgba(59, 130, 246, 0.15)", text: "#3b82f6", label: "Enviado" },
+    entregue: { bg: "rgba(79, 110, 247, 0.15)", text: "#4f6ef7", label: "Entregue" },
+    concluído: { bg: "rgba(34, 197, 94, 0.15)", text: "#22c55e", label: "Concluído" },
+    cancelado: { bg: "rgba(239, 68, 68, 0.15)", text: "#ef4444", label: "Cancelado" },
+    estornado: { bg: "rgba(249, 115, 22, 0.15)", text: "#f97316", label: "Estornado" },
+    recusado: { bg: "rgba(239, 68, 68, 0.15)", text: "#dc2626", label: "Recusado" },
+  };
+
   // Hooks customizados
   const { data: rawOrders, loading, error, refetch } = useFetch(
     API_ENDPOINTS.ORDERS,
@@ -36,6 +47,8 @@ const Orders = () => {
     return (rawOrders || []).map(order => ({
       ...order,
       id: order.order_id || order.id,
+      client: order.client_name || order.client,
+      total_amount: order.total || order.total_amount,
     }));
   }, [rawOrders]);
 
@@ -92,9 +105,7 @@ const Orders = () => {
   }
 
   return (
-    <>
-      <style>{GLOBAL_STYLES}</style>
-      <div className="main-content">
+    <div className="main-content">
           <div className="topbar">
             <div className="topbar-title">Pedidos</div>
             <div className="topbar-right">
@@ -167,25 +178,24 @@ const Orders = () => {
                   {
                     key: "status",
                     label: "Status",
-                    render: (value) => (
-                      <span style={{
-                        padding: "4px 8px",
-                        backgroundColor: value === "pendente" ? "rgba(245,158,11,0.2)" :
-                                         value === "aprovado" ? "rgba(34,197,94,0.2)" :
-                                         value === "entregue" ? "rgba(79,110,247,0.2)" :
-                                         "rgba(239,68,68,0.2)",
-                        color: value === "pendente" ? "#f59e0b" :
-                               value === "aprovado" ? "#22c55e" :
-                               value === "entregue" ? "#4f6ef7" :
-                               "#ef4444",
-                        borderRadius: "4px",
-                        fontSize: "12px",
-                        fontWeight: "500",
-                        textTransform: "capitalize",
-                      }}>
-                        {value}
-                      </span>
-                    ),
+                    render: (value) => {
+                      const color = STATUS_COLORS[value] || STATUS_COLORS.pendente;
+                      return (
+                        <span style={{
+                          display: 'inline-block',
+                          padding: "6px 12px",
+                          backgroundColor: color.bg,
+                          color: color.text,
+                          borderRadius: "var(--radius-md)",
+                          fontSize: "var(--text-sm)",
+                          fontWeight: "600",
+                          border: `1px solid ${color.text}20`,
+                          whiteSpace: 'nowrap',
+                        }}>
+                          {color.label}
+                        </span>
+                      );
+                    },
                   },
                 ]}
                 onEdit={handleEditOrder}
@@ -264,7 +274,6 @@ const Orders = () => {
             </div>
           </div>
         </div>
-    </>
   );
 };
 

@@ -10,7 +10,6 @@ import DataForm from "../components/DataForm";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
-import { GLOBAL_STYLES } from "../constants/styles";
 
 const Clients = () => {
   const { user, logout } = useAuth();
@@ -103,9 +102,7 @@ const Clients = () => {
   }
 
   return (
-    <>
-      <style>{GLOBAL_STYLES}</style>
-      <div className="main-content">
+    <div className="main-content">
           <div className="topbar">
             <div className="topbar-title">Clientes</div>
             <div className="topbar-right">
@@ -238,8 +235,7 @@ const Clients = () => {
             </Card>
           </div>
         </div>
-      </>
-    );
-  };
+  );
+};
 
-  export default Clients;
+export default Clients;
