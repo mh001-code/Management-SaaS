@@ -17,6 +17,7 @@ import logRoutes from "./routes/logRoutes.js";
 import summaryRoutes from "./routes/summaryRoutes.js";
 
 dotenv.config();
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -24,16 +25,13 @@ app.use(morgan("dev"));
 app.use(cors());
 app.use(express.json());
 
-// Middleware para desabilitar cache em todas as rotas API
+// Cache desabilitado para todas as rotas da API
 app.use("/api", (req, res, next) => {
   res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
   res.set("Pragma", "no-cache");
   res.set("Expires", "0");
-  res.set("ETag", false);
   next();
 });
-
-app.use("/api/summary", summaryRoutes);
 
 // Testar conexão com o banco
 pool.query("SELECT NOW()", (err, res) => {
@@ -44,25 +42,26 @@ pool.query("SELECT NOW()", (err, res) => {
 // Swagger
 swaggerDocs(app);
 
+// Log de todas as requisições
 app.use(logMiddleware);
 
-app.use("/api/reports", authMiddleware, reportsRoutes);
-
-app.use("/api/logs", authMiddleware, logRoutes);
-
-// Rotas públicas
+// ─── Rotas públicas ───────────────────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
 
-// Rotas protegidas
+// ─── Rotas protegidas ─────────────────────────────────────────────────────────
+// ✅ authMiddleware aplicado apenas aqui — removido dos arquivos de rota internos
+app.use("/api/summary", authMiddleware, summaryRoutes);
+app.use("/api/reports", authMiddleware, reportsRoutes);
+app.use("/api/logs", authMiddleware, logRoutes);
 app.use("/api/users", authMiddleware, userRoutes);
 app.use("/api/products", authMiddleware, productRoutes);
 app.use("/api/clients", authMiddleware, clientsRoutes);
 app.use("/api/orders", authMiddleware, ordersRoutes);
 
-// Rota teste
+// Rota de teste
 app.get("/", (req, res) => res.send("API rodando 🚀"));
 
-// Middleware de erros
+// Middleware de erros (deve ser o último)
 app.use(errorHandler);
 
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));

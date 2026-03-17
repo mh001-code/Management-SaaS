@@ -1,12 +1,9 @@
 import { Router } from "express";
 import { getLogs } from "../controllers/logController.js";
-import authMiddleware from "../middlewares/authMiddleware.js";
 
 const router = Router();
 
-// Apenas usuários autenticados podem consultar logs
-router.use(authMiddleware);
-
+// ✅ authMiddleware removido daqui — já aplicado em index.js
 router.get("/", getLogs);
 
 export default router;

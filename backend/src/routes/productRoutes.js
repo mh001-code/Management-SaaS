@@ -125,18 +125,15 @@ import {
   updateProduct,
   deleteProduct,
 } from "../controllers/productController.js";
-import authMiddleware from "../middlewares/authMiddleware.js";
-import { validateProduct } from "../middlewares/validateProduct.js"; // ✅ importar validação
+import { validateProduct } from "../middlewares/validateProduct.js";
 
 const router = Router();
 
-// Todas as rotas protegidas por JWT
-router.use(authMiddleware);
-
+// ✅ authMiddleware removido daqui — já aplicado em index.js
 router.get("/", getProducts);
 router.get("/:id", getProductById);
-router.post("/", validateProduct, createProduct);   // ✅ validação no POST
-router.put("/:id", validateProduct, updateProduct); // ✅ validação no PUT
+router.post("/", validateProduct, createProduct);
+router.put("/:id", validateProduct, updateProduct);
 router.delete("/:id", deleteProduct);
 
 export default router;

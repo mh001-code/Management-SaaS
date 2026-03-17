@@ -4,7 +4,6 @@ import Sidebar from "./components/Sidebar";
 import PrivateRoute from "./components/PrivateRoute";
 import Login from "./pages/Login";
 
-// Design System
 import "./theme/theme.css";
 import "./styles/globals.css";
 import "./index.css";
@@ -16,28 +15,26 @@ const Products = lazy(() => import("./pages/Products"));
 const Orders = lazy(() => import("./pages/Orders"));
 const Users = lazy(() => import("./pages/Users"));
 
-/**
- * Componente de loading para suspense
- */
 const PageLoader = () => (
   <div style={{
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '100vh',
-    backgroundColor: '#0a0a0f',
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: "100vh",
+    backgroundColor: "#0a0a0f",
   }}>
     <div style={{
-      width: '40px',
-      height: '40px',
-      border: '3px solid rgba(255,255,255,0.1)',
-      borderTopColor: '#4f6ef7',
-      borderRadius: '50%',
-      animation: 'spin 1s linear infinite',
+      width: "40px",
+      height: "40px",
+      border: "3px solid rgba(255,255,255,0.1)",
+      borderTopColor: "#4f6ef7",
+      borderRadius: "50%",
+      animation: "spin 1s linear infinite",
     }} />
   </div>
 );
 
+// ✅ Suspense único aqui — removidos os Suspense individuais por rota
 const PrivateLayout = () => (
   <main className="app-main-layout">
     <Suspense fallback={<PageLoader />}>
@@ -64,54 +61,12 @@ const App = () => {
           </PrivateRoute>
         }
       >
-        <Route
-          index
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <Dashboard />
-            </Suspense>
-          }
-        />
-        <Route
-          path="dashboard"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <Dashboard />
-            </Suspense>
-          }
-        />
-        <Route
-          path="clients"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <Clients />
-            </Suspense>
-          }
-        />
-        <Route
-          path="products"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <Products />
-            </Suspense>
-          }
-        />
-        <Route
-          path="orders"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <Orders />
-            </Suspense>
-          }
-        />
-        <Route
-          path="users"
-          element={
-            <Suspense fallback={<PageLoader />}>
-              <Users />
-            </Suspense>
-          }
-        />
+        <Route index element={<Dashboard />} />
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="clients" element={<Clients />} />
+        <Route path="products" element={<Products />} />
+        <Route path="orders" element={<Orders />} />
+        <Route path="users" element={<Users />} />
       </Route>
     </Routes>
   );
