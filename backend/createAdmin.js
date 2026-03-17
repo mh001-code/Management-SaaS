@@ -3,9 +3,10 @@ import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 
 dotenv.config();
+
 const { Pool } = pkg;
 
-// Conexão com PostgreSQL via variáveis de ambiente
+// ✅ Nunca hardcode credenciais — use variáveis de ambiente
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
@@ -15,20 +16,46 @@ const pool = new Pool({
 });
 
 const createAdmin = async () => {
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  const adminEmail = process.env.ADMIN_EMAIL || "admin@seuapp.com";
+  const adminName = process.env.ADMIN_NAME || "Admin";
+
+  if (!adminPassword) {
+    console.error(
+      "❌ ADMIN_PASSWORD não definida no .env\n" +
+      "   Adicione ADMIN_PASSWORD=sua_senha_forte ao arquivo .env e tente novamente."
+    );
+    process.exit(1);
+  }
+
+  if (adminPassword.length < 8) {
+    console.error("❌ ADMIN_PASSWORD deve ter pelo menos 8 caracteres.");
+    process.exit(1);
+  }
+
   try {
-
-    // Cria hash da senha
-    const passwordHash = await bcrypt.hash("123456", 10);
-
-    // Insere admin
-    await pool.query(
-      "INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4)",
-      ["Admin1", "admin@seuapp.com", passwordHash, "admin"]
+    // Verifica se já existe admin com esse email
+    const existing = await pool.query(
+      "SELECT id FROM users WHERE email = $1",
+      [adminEmail]
     );
 
-    console.log("Admin criado com sucesso!");
+    if (existing.rows.length > 0) {
+      console.warn(`⚠️  Usuário com email "${adminEmail}" já existe. Nenhuma alteração feita.`);
+      return;
+    }
+
+    const passwordHash = await bcrypt.hash(adminPassword, 12); // ✅ salt 12 (mais seguro que 10)
+
+    await pool.query(
+      "INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4)",
+      [adminName, adminEmail, passwordHash, "admin"]
+    );
+
+    console.log(`✅ Admin criado com sucesso! Email: ${adminEmail}`);
   } catch (err) {
-    console.error("Erro ao criar admin:", err);
+    console.error("❌ Erro ao criar admin:", err.message);
+    process.exit(1);
   } finally {
     pool.end();
   }
