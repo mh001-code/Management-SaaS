@@ -1,49 +1,37 @@
-// backend/src/models/OrderItemModel.js
 import pool from "../config/db.js";
 
-// Client de transação compartilhado
-let transactionClient = null;
+// ✅ Todas as funções recebem um executor opcional (client de transação ou pool)
+// Isso elimina o estado global e resolve a race condition
 
-export const setTransactionClient = (client) => {
-  transactionClient = client;
-};
+const getExecutor = (client) => client || pool;
 
-// Wrapper inteligente que usa transação se existir
-const q = async (text, params) => {
-  if (transactionClient) {
-    return transactionClient.query(text, params);
-  }
-  return pool.query(text, params);
-};
-
-// Buscar itens de um pedido (com FOR UPDATE caso esteja em transação)
-export const getItemsByOrderId = async (order_id) => {
-  const res = await q(
+export const getItemsByOrderId = async (orderId, client) => {
+  const executor = getExecutor(client);
+  const res = await executor.query(
     `SELECT product_id, quantity, price
      FROM order_items
      WHERE order_id = $1
-     FOR UPDATE`, // trava itens enquanto pedido é modificado
-    [order_id]
+     FOR UPDATE`,
+    [orderId]
   );
   return res.rows;
 };
 
-// Remover todos itens do pedido
-export const deleteItemsByOrderId = async (order_id) => {
-  await q(
-    `DELETE FROM order_items
-     WHERE order_id = $1`,
-    [order_id]
+export const deleteItemsByOrderId = async (orderId, client) => {
+  const executor = getExecutor(client);
+  await executor.query(
+    `DELETE FROM order_items WHERE order_id = $1`,
+    [orderId]
   );
 };
 
-// Criar item do pedido
-export const createOrderItem = async (order_id, product_id, quantity, price) => {
-  const res = await q(
+export const createOrderItem = async (orderId, productId, quantity, price, client) => {
+  const executor = getExecutor(client);
+  const res = await executor.query(
     `INSERT INTO order_items (order_id, product_id, quantity, price)
      VALUES ($1, $2, $3, $4)
      RETURNING *`,
-    [order_id, product_id, quantity, price]
+    [orderId, productId, quantity, price]
   );
   return res.rows[0];
 };

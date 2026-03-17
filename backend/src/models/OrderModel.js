@@ -1,50 +1,38 @@
 import pool from "../config/db.js";
 
-// Transação
-let clientTransaction = null;
-
-// Inicia a transação e retorna o client
+// ─── Transação ────────────────────────────────────────────────────────────────
+// ✅ Retorna o client para que o controller gerencie o ciclo de vida
 export const beginTransaction = async () => {
-  clientTransaction = await pool.connect();
-  await clientTransaction.query("BEGIN");
-  return clientTransaction;
+  const client = await pool.connect();
+  await client.query("BEGIN");
+  return client;
 };
 
-// Commit da transação
-export const commitTransaction = async () => {
-  if (clientTransaction) {
-    await clientTransaction.query("COMMIT");
-    clientTransaction.release();
-    clientTransaction = null;
-  }
+export const commitTransaction = async (client) => {
+  await client.query("COMMIT");
+  client.release();
 };
 
-// Rollback da transação
-export const rollbackTransaction = async () => {
-  if (clientTransaction) {
-    await clientTransaction.query("ROLLBACK");
-    clientTransaction.release();
-    clientTransaction = null;
-  }
+export const rollbackTransaction = async (client) => {
+  await client.query("ROLLBACK");
+  client.release();
 };
 
-// Criar pedido dentro da transação
-export const createOrder = async (client_id, user_id, total, status = 'pendente') => {
-  if (!clientTransaction) throw new Error("Transação não iniciada");
+// ─── Queries ──────────────────────────────────────────────────────────────────
 
-  const res = await clientTransaction.query(
+// ✅ client é passado como parâmetro — sem estado global
+export const createOrder = async (client, clientId, userId, total, status = "pendente") => {
+  const res = await client.query(
     `INSERT INTO orders (client_id, user_id, total, status, created_at)
      VALUES ($1, $2, $3, $4, NOW()) RETURNING *`,
-    [client_id, user_id, total, status]
+    [clientId, userId, total, status]
   );
-
   return res.rows[0];
 };
 
-// Buscar todos os pedidos com cliente e itens
 export const getAllOrdersWithDetails = async () => {
   const res = await pool.query(`
-    SELECT 
+    SELECT
       o.id AS order_id,
       o.status,
       o.total,
@@ -66,49 +54,42 @@ export const getAllOrdersWithDetails = async () => {
     GROUP BY o.id, c.id
     ORDER BY o.id
   `);
-
   return res.rows;
 };
 
-export const updateOrderClientTotalStatus = async (orderId, clientId, total, status) => {
-  const executor = clientTransaction || pool;
-
-  const result = await executor.query(
-    `UPDATE orders 
-     SET client_id = $1, total = $2, status = $3, updated_at = NOW() 
-     WHERE id = $4
-     RETURNING *`,
-    [clientId, total, status, orderId]
-  );
-
-  return result.rows[0];
-};
-
-// Buscar pedido por ID
 export const getOrderById = async (id) => {
-  const res = await pool.query(`SELECT * FROM orders WHERE id=$1`, [id]);
+  const res = await pool.query(`SELECT * FROM orders WHERE id = $1`, [id]);
   return res.rows[0];
 };
 
-// ✅ Atualizar status corretamente
 export const updateOrderStatus = async (id, status) => {
   const res = await pool.query(
-    `UPDATE orders 
-     SET status = $1, updated_at = NOW() 
-     WHERE id = $2 
+    `UPDATE orders
+     SET status = $1, updated_at = NOW()
+     WHERE id = $2
      RETURNING *`,
     [status, id]
   );
   return res.rows[0];
 };
 
-// Deletar itens do pedido (usado em updateOrder)
-export const deleteItemsByOrderId = async (order_id) => {
-  await clientTransaction.query(`DELETE FROM order_items WHERE order_id=$1`, [order_id]);
+// ✅ client como parâmetro
+export const updateOrderClientTotalStatus = async (client, orderId, clientId, total, status) => {
+  const executor = client || pool;
+  const res = await executor.query(
+    `UPDATE orders
+     SET client_id = $1, total = $2, status = $3, updated_at = NOW()
+     WHERE id = $4
+     RETURNING *`,
+    [clientId, total, status, orderId]
+  );
+  return res.rows[0];
 };
 
-// Deletar pedido
 export const deleteOrder = async (id) => {
-  const res = await pool.query(`DELETE FROM orders WHERE id=$1 RETURNING *`, [id]);
+  const res = await pool.query(
+    `DELETE FROM orders WHERE id = $1 RETURNING *`,
+    [id]
+  );
   return res.rows[0];
 };

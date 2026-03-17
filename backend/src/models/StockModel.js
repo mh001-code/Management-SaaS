@@ -1,53 +1,45 @@
-// backend/src/models/StockModel.js
 import pool from "../config/db.js";
 
-// Se estiver dentro de transação, usaremos um client específico
-let clientTransaction = null;
+// ✅ Todas as funções recebem um executor opcional (client de transação ou pool)
+// Isso elimina o estado global e resolve a race condition
 
-// Chamar isso em controllers que iniciam transação:
-// StockModel.setTransactionClient(client)
-export const setTransactionClient = (client) => {
-  clientTransaction = client;
-};
+const getExecutor = (client) => client || pool;
 
-// Executor controlado — usa client da transação se existir, senão pool normal
-const q = async (text, params) => {
-  if (clientTransaction) {
-    return clientTransaction.query(text, params);
-  }
-  return pool.query(text, params);
-};
-
-// Obter estoque atual (com lock para evitar race conditions quando dentro de transação)
-export const getCurrentStock = async (product_id) => {
-  const result = await q(
+export const getCurrentStock = async (productId, client) => {
+  const executor = getExecutor(client);
+  const res = await executor.query(
     `SELECT COALESCE(quantity, 0) AS stock_quantity
      FROM stock
      WHERE product_id = $1
      FOR UPDATE`,
-    [product_id]
+    [productId]
   );
-
-  return Number(result.rows[0]?.stock_quantity || 0);
+  return Number(res.rows[0]?.stock_quantity || 0);
 };
 
-// Atualizar estoque com valor absoluto
-export const updateStock = async (product_id, quantity) => {
-  const result = await q(
+export const getCurrentStockForUpdate = async (productId, client) => {
+  const executor = getExecutor(client);
+  const res = await executor.query(
+    `SELECT quantity FROM stock WHERE product_id = $1 FOR UPDATE`,
+    [productId]
+  );
+  return res.rows[0]?.quantity ?? 0;
+};
+
+export const updateStock = async (productId, quantity, client) => {
+  const executor = getExecutor(client);
+  const res = await executor.query(
     `UPDATE stock
      SET quantity = $1, last_updated = NOW()
      WHERE product_id = $2
      RETURNING *`,
-    [quantity, product_id]
+    [quantity, productId]
   );
-
-  return result.rows[0];
+  return res.rows[0];
 };
 
-// Decrementar estoque (ajuste relativo)
-export const decrementStock = async (productId, quantity) => {
-  const executor = clientTransaction || pool;
-
+export const decrementStock = async (productId, quantity, client) => {
+  const executor = getExecutor(client);
   const res = await executor.query(
     `UPDATE stock
      SET quantity = quantity - $1, last_updated = NOW()
@@ -55,18 +47,14 @@ export const decrementStock = async (productId, quantity) => {
      RETURNING quantity`,
     [quantity, productId]
   );
-
   if (!res.rowCount) {
-    throw new Error(`⚠️ Estoque insuficiente para o produto ${productId}`);
+    throw new Error(`Estoque insuficiente para o produto ${productId}`);
   }
-
   return res.rows[0].quantity;
 };
 
-// Restaura estoque (usado ao editar pedido para devolver o que estava reservado antes)
-export const restoreStock = async (productId, quantity) => {
-  const executor = clientTransaction || pool;
-
+export const restoreStock = async (productId, quantity, client) => {
+  const executor = getExecutor(client);
   const res = await executor.query(
     `UPDATE stock
      SET quantity = quantity + $1, last_updated = NOW()
@@ -74,75 +62,50 @@ export const restoreStock = async (productId, quantity) => {
      RETURNING *`,
     [quantity, productId]
   );
-
-  console.log("🔄 Estoque restaurado:", res.rows[0]);
   return res.rows[0];
 };
 
-// Obter estoque com bloqueio (para uso em transações de atualização de pedidos)
-export const getCurrentStockForUpdate = async (productId) => {
-  const executor = clientTransaction || pool;
-
+export const incrementStock = async (productId, quantity, client) => {
+  const executor = getExecutor(client);
   const res = await executor.query(
-    `SELECT quantity
-     FROM stock
-     WHERE product_id = $1
-     FOR UPDATE`,
-    [productId]
-  );
-
-  return res.rows[0]?.quantity ?? 0;
-};
-
-// Incrementar estoque (quando remover item do pedido)
-export const incrementStock = async (productId, quantity) => {
-  const result = await q(
     `UPDATE stock
      SET quantity = quantity + $1, last_updated = NOW()
      WHERE product_id = $2
      RETURNING *`,
     [quantity, productId]
   );
-
-  console.log("➕ Estoque incrementado:", result.rows[0]);
-  return result.rows[0];
+  return res.rows[0];
 };
 
-// Criar registro inicial de estoque para novo produto
-export const addStock = async (product_id, quantity = 0) => {
-  const result = await q(
+export const addStock = async (productId, quantity = 0, client) => {
+  const executor = getExecutor(client);
+  const res = await executor.query(
+    `INSERT INTO stock (product_id, quantity) VALUES ($1, $2) RETURNING *`,
+    [productId, quantity]
+  );
+  return res.rows[0];
+};
+
+export const upsertStock = async (productId, quantity, client) => {
+  const executor = getExecutor(client);
+  const res = await executor.query(
     `INSERT INTO stock (product_id, quantity)
      VALUES ($1, $2)
+     ON CONFLICT (product_id)
+     DO UPDATE SET quantity = $2, last_updated = NOW()
      RETURNING *`,
-    [product_id, quantity]
+    [productId, quantity]
   );
-
-  return result.rows[0];
+  return res.rows[0];
 };
 
-// Inserir ou atualizar estoque (para novos produtos criados ou atualizados)
-export const upsertStock = async (product_id, quantity) => {
-  const existing = await q(
-    `SELECT * FROM stock WHERE product_id = $1`,
-    [product_id]
+// ─── Movimento de estoque (stockController) ───────────────────────────────────
+export const addStockMovement = async ({ product_id, quantity, type, reference_id }) => {
+  const res = await pool.query(
+    `INSERT INTO stock_movements (product_id, quantity, type, reference_id)
+     VALUES ($1, $2, $3, $4)
+     RETURNING *`,
+    [product_id, quantity, type, reference_id]
   );
-
-  if (existing.rows.length > 0) {
-    const updated = await q(
-      `UPDATE stock
-       SET quantity = $1, last_updated = NOW()
-       WHERE product_id = $2
-       RETURNING *`,
-      [quantity, product_id]
-    );
-    return updated.rows[0];
-  } else {
-    const inserted = await q(
-      `INSERT INTO stock (product_id, quantity)
-       VALUES ($1, $2)
-       RETURNING *`,
-      [product_id, quantity]
-    );
-    return inserted.rows[0];
-  }
+  return res.rows[0];
 };
