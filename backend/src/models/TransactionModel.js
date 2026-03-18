@@ -14,10 +14,11 @@ export const getAllTransactions = async (filters = {}) => {
   const params = [];
   let i = 1;
 
-  if (filters.type)   { conditions.push(`t.type = $${i++}`);   params.push(filters.type); }
-  if (filters.status) { conditions.push(`t.status = $${i++}`); params.push(filters.status); }
-  if (filters.from)   { conditions.push(`t.due_date >= $${i++}`); params.push(filters.from); }
-  if (filters.to)     { conditions.push(`t.due_date <= $${i++}`); params.push(filters.to); }
+  if (filters.type)        { conditions.push(`t.type = $${i++}`);          params.push(filters.type); }
+  if (filters.status)      { conditions.push(`t.status = $${i++}`);        params.push(filters.status); }
+  if (filters.category_id) { conditions.push(`t.category_id = $${i++}`);   params.push(filters.category_id); }
+  if (filters.from)        { conditions.push(`t.due_date >= $${i++}`);     params.push(filters.from); }
+  if (filters.to)          { conditions.push(`t.due_date <= $${i++}`);     params.push(filters.to); }
 
   const res = await pool.query(
     `SELECT

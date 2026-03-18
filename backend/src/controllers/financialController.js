@@ -1,17 +1,15 @@
 import * as TM from "../models/TransactionModel.js";
 
-// ── Categorias ────────────────────────────────────────────────────────────────
 export const getCategories = async (req, res, next) => {
   try {
     res.json(await TM.getAllCategories());
   } catch (err) { next(err); }
 };
 
-// ── Lançamentos ───────────────────────────────────────────────────────────────
 export const getTransactions = async (req, res, next) => {
   try {
-    const { type, status, from, to } = req.query;
-    res.json(await TM.getAllTransactions({ type, status, from, to }));
+    const { type, status, from, to, category_id } = req.query;
+    res.json(await TM.getAllTransactions({ type, status, from, to, category_id }));
   } catch (err) { next(err); }
 };
 
@@ -57,7 +55,6 @@ export const deleteTransaction = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// ── Fluxo de caixa ────────────────────────────────────────────────────────────
 export const getCashFlow = async (req, res, next) => {
   try {
     const from = req.query.from || new Date(new Date().getFullYear(), 0, 1).toISOString().split("T")[0];
