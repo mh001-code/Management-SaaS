@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { useFetch, useSearch, useForm, usePagination } from "../hooks";
+import { useFetch, useForm, usePagination } from "../hooks";
 import { API_ENDPOINTS } from "../constants";
 import api from "../services/api";
 import errorService from "../services/errorService";
@@ -7,162 +7,134 @@ import notificationService from "../services/notificationService";
 import { formatCurrency } from "../utils/formatCurrency";
 import DataTable from "../components/DataTable";
 import DataForm from "../components/DataForm";
-import Pagination from "../components/Pagination";
+import PageShell from "../components/PageShell";
 import Card from "../components/ui/Card";
-import Input from "../components/ui/Input";
+import Pagination from "../components/Pagination";
+
+const ICON_PATH = "M3 3h14v4H3zM3 10h14v7H3z";
+
+const StockBadge = ({ qty }) => {
+  const n = Number(qty);
+  const style =
+    n === 0  ? { bg: "rgba(247,100,100,0.1)",   text: "#F76464" } :
+    n <= 5   ? { bg: "rgba(247,145,106,0.1)",   text: "#F7916A" } :
+               { bg: "rgba(0,212,170,0.1)",     text: "#00D4AA" };
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 4,
+      padding: "3px 9px", borderRadius: 99,
+      background: style.bg, color: style.text,
+      fontSize: 12, fontWeight: 600,
+    }}>
+      {n === 0 ? "Sem estoque" : `${n} un.`}
+    </span>
+  );
+};
 
 const Products = () => {
   const formRef = useRef(null);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [search, setSearch] = useState("");
 
   const { data: products, loading, error, refetch } = useFetch(
-    API_ENDPOINTS.PRODUCTS,
-    true,
-    5 * 60 * 1000
+    API_ENDPOINTS.PRODUCTS, true, 5 * 60 * 1000
   );
 
-  const { search, setSearch, filtered } = useSearch(products || [], [
-    "name",
-    "category",
-  ]);
-
-  const { paginatedItems, currentPage, goToPage, totalPages } = usePagination(
-    filtered,
-    10
+  const filtered = (products || []).filter((p) =>
+    (p.name ?? "").toLowerCase().includes(search.toLowerCase())
   );
+
+  const { paginatedItems, currentPage, goToPage, totalPages } = usePagination(filtered, 10);
 
   const initialValues = {
-    name: editingProduct?.name || "",
-    category: editingProduct?.category || "",
-    price: editingProduct?.price || "",
-    stock_quantity: editingProduct?.stock_quantity || "",
+    name: editingProduct?.name ?? "",
+    price: editingProduct?.price ?? "",
+    stock_quantity: editingProduct?.stock_quantity ?? "",
+    description: editingProduct?.description ?? "",
   };
 
-  const {
-    values,
-    errors,
-    touched,
-    isSubmitting,
-    handleSubmit: formSubmit,
-    resetForm,
-    setFieldValue,
-    setFieldTouched,
-  } = useForm(initialValues, async (formData) => {
-    if (!formData.name || !formData.price) {
-      notificationService.error("Nome e preço são obrigatórios");
-      return;
-    }
-
-    try {
-      const dataToSend = {
-        ...formData,
-        price: parseFloat(formData.price),
-        stock_quantity: parseInt(formData.stock_quantity) || 0,
-      };
-
-      if (editingProduct) {
-        await api.put(`${API_ENDPOINTS.PRODUCTS}/${editingProduct.id}`, dataToSend);
-        notificationService.success("Produto atualizado com sucesso!");
-      } else {
-        await api.post(API_ENDPOINTS.PRODUCTS, dataToSend);
-        notificationService.success("Produto criado com sucesso!");
+  const { values, errors, touched, isSubmitting, handleSubmit, resetForm, setFieldValue, setFieldTouched } =
+    useForm(initialValues, async (data) => {
+      if (!data.name || !data.price) {
+        notificationService.error("Nome e preço são obrigatórios"); return;
       }
+      try {
+        const payload = {
+          ...data,
+          price: parseFloat(data.price),
+          stock_quantity: parseInt(data.stock_quantity) || 0,
+        };
+        if (editingProduct) {
+          await api.put(`${API_ENDPOINTS.PRODUCTS}/${editingProduct.id}`, payload);
+          notificationService.success("Produto atualizado!");
+        } else {
+          await api.post(API_ENDPOINTS.PRODUCTS, payload);
+          notificationService.success("Produto criado!");
+        }
+        setEditingProduct(null);
+        resetForm();
+        refetch();
+      } catch (err) {
+        notificationService.error(errorService.handle(err, "salvar produto"));
+      }
+    });
 
-      setEditingProduct(null);
-      resetForm();
-      refetch();
-    } catch (err) {
-      const message = errorService.handle(err, "criação/atualização do produto");
-      notificationService.error(message);
-    }
-  });
-
-  const handleEditProduct = (product) => {
+  const handleEdit = (product) => {
     setEditingProduct(product);
     setFieldValue("name", product.name);
-    setFieldValue("category", product.category || "");
     setFieldValue("price", product.price);
     setFieldValue("stock_quantity", product.stock_quantity);
-    if (formRef.current) {
-      formRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    setFieldValue("description", product.description ?? "");
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const handleDeleteProduct = async (id) => {
+  const handleDelete = async (id) => {
     try {
       await api.delete(`${API_ENDPOINTS.PRODUCTS}/${id}`);
-      notificationService.success("Produto deletado com sucesso!");
+      notificationService.success("Produto deletado!");
       refetch();
     } catch (err) {
-      const message = errorService.handle(err, "deleção do produto");
-      notificationService.error(message);
+      notificationService.error(errorService.handle(err, "deletar produto"));
     }
   };
 
-  const handleCancel = () => {
-    setEditingProduct(null);
-    resetForm();
-  };
-
-  if (error) {
-    return (
-      <div style={{ padding: "20px", textAlign: "center" }}>
-        <p style={{ color: "#ef4444" }}>Erro: {error}</p>
-      </div>
-    );
-  }
+  const handleCancel = () => { setEditingProduct(null); resetForm(); };
 
   return (
     <div className="main-content">
-      <div className="topbar">
-        <div className="topbar-title">Produtos</div>
-        <div className="topbar-right">
-          <Input
-            placeholder="🔍 Buscar produto..."
+      <PageShell
+        title="Produtos"
+        count={loading ? null : filtered.length}
+        icon={ICON_PATH}
+        description="Catálogo e controle de estoque"
+        actions={
+          <input
+            className="input"
+            placeholder="Buscar produto..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            style={{ width: 220 }}
           />
-        </div>
-      </div>
+        }
+      />
 
       <div className="page-body">
-        {/* Formulário */}
-        <div ref={formRef} className="animate-fadeUp">
-          <Card title={editingProduct ? "✏️ Editar Produto" : "➕ Novo Produto"}>
+        {error && <div className="alert alert-danger">{error}</div>}
+
+        <div ref={formRef}>
+          <Card title={editingProduct ? "✎ Editar produto" : "+ Novo produto"}>
             <DataForm
               fields={[
-                {
-                  name: "name",
-                  label: "Nome",
-                  type: "text",
-                  placeholder: "Digite o nome do produto",
-                  required: true,
-                },
-                {
-                  name: "category",
-                  label: "Categoria",
-                  type: "text",
-                  placeholder: "Digite a categoria",
-                },
-                {
-                  name: "price",
-                  label: "Preço (R$)",
-                  type: "number",
-                  placeholder: "0.00",
-                  required: true,
-                },
-                {
-                  name: "stock_quantity",
-                  label: "Estoque",
-                  type: "number",
-                  placeholder: "0",
-                },
+                { name: "name",          label: "Nome",     type: "text",   placeholder: "Nome do produto",  required: true },
+                { name: "price",         label: "Preço",    type: "number", placeholder: "0,00",              required: true },
+                { name: "stock_quantity",label: "Estoque",  type: "number", placeholder: "0" },
+                { name: "description",   label: "Descrição",type: "textarea",placeholder: "Descrição opcional..." },
               ]}
               values={values}
               errors={errors}
               touched={touched}
               isSubmitting={isSubmitting}
-              onSubmit={formSubmit}
+              onSubmit={handleSubmit}
               onCancel={editingProduct ? handleCancel : null}
               onFieldChange={(name, value) => setFieldValue(name, value)}
               onFieldBlur={(name) => setFieldTouched(name, true)}
@@ -171,40 +143,27 @@ const Products = () => {
           </Card>
         </div>
 
-        {/* Tabela */}
-        <div className="chart-card animate-fadeUp">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <div className="chart-title" style={{ marginBottom: 0 }}>
-              Catálogo de Produtos
-              <span className="badge badge-blue" style={{ marginLeft: 10 }}>
-                {filtered.length}
-              </span>
-            </div>
-          </div>
-
+        <div className="chart-card">
           <DataTable
             rows={paginatedItems}
             columns={[
-              { key: "name", label: "Nome" },
-              { key: "category", label: "Categoria" },
-              {
-                key: "price",
-                label: "Preço",
-                render: (value) => formatCurrency(value),
-              },
-              { key: "stock_quantity", label: "Estoque" },
+              { key: "name",           label: "Nome" },
+              { key: "price",          label: "Preço",
+                render: (v) => <span style={{ fontFamily: "var(--font-mono)", fontWeight: 600 }}>{formatCurrency(v)}</span> },
+              { key: "stock_quantity", label: "Estoque",
+                render: (v) => <StockBadge qty={v} /> },
+              { key: "description",    label: "Descrição",
+                render: (v) => v
+                  ? <span style={{ color: "var(--color-textMuted)", fontSize: 12 }}>{String(v).slice(0, 60)}{String(v).length > 60 ? "…" : ""}</span>
+                  : <span style={{ color: "var(--color-textMuted)" }}>—</span> },
             ]}
-            onEdit={handleEditProduct}
-            onDelete={handleDeleteProduct}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
             isLoading={loading}
-            emptyMessage="Nenhum produto encontrado"
+            emptyMessage="Nenhum produto cadastrado ainda"
+            emptyIcon="products"
           />
-
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={goToPage}
-          />
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
         </div>
       </div>
     </div>

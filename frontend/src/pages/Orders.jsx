@@ -7,20 +7,34 @@ import notificationService from "../services/notificationService";
 import { formatCurrency } from "../utils/formatCurrency";
 import DataTable from "../components/DataTable";
 import OrderForm from "../components/OrderForm";
+import PageShell from "../components/PageShell";
 import Pagination from "../components/Pagination";
-import Card from "../components/ui/Card";
-import Input from "../components/ui/Input";
 
-const STATUS_COLORS = {
-  pendente:  { bg: "rgba(245, 158, 11, 0.15)",  text: "#f59e0b", label: "Pendente"  },
-  pago:      { bg: "rgba(34, 197, 94, 0.15)",   text: "#22c55e", label: "Pago"      },
-  enviado:   { bg: "rgba(59, 130, 246, 0.15)",  text: "#3b82f6", label: "Enviado"   },
-  entregue:  { bg: "rgba(79, 110, 247, 0.15)",  text: "#4f6ef7", label: "Entregue"  },
-  concluído: { bg: "rgba(34, 197, 94, 0.15)",   text: "#22c55e", label: "Concluído" },
-  cancelado: { bg: "rgba(239, 68, 68, 0.15)",   text: "#ef4444", label: "Cancelado" },
-  estornado: { bg: "rgba(249, 115, 22, 0.15)",  text: "#f97316", label: "Estornado" },
-  recusado:  { bg: "rgba(239, 68, 68, 0.15)",   text: "#dc2626", label: "Recusado"  },
+const STATUS_STYLE = {
+  pendente:   { bg: "rgba(247,145,106,0.1)", text: "#F7916A" },
+  pago:       { bg: "rgba(0,212,170,0.1)",   text: "#00D4AA" },
+  enviado:    { bg: "rgba(124,106,247,0.1)", text: "#7C6AF7" },
+  entregue:   { bg: "rgba(0,212,170,0.1)",   text: "#00D4AA" },
+  "concluído":{ bg: "rgba(0,212,170,0.1)",   text: "#00D4AA" },
+  cancelado:  { bg: "rgba(247,100,100,0.1)", text: "#F76464" },
+  estornado:  { bg: "rgba(122,122,154,0.1)", text: "#7A7A9A" },
+  recusado:   { bg: "rgba(247,100,100,0.1)", text: "#F76464" },
 };
+
+const StatusBadge = ({ status }) => {
+  const s = STATUS_STYLE[status] ?? STATUS_STYLE.pendente;
+  return (
+    <span style={{
+      display: "inline-flex", padding: "3px 10px", borderRadius: 99,
+      background: s.bg, color: s.text,
+      fontSize: 11, fontWeight: 600, whiteSpace: "nowrap",
+    }}>
+      {status}
+    </span>
+  );
+};
+
+const ICON_PATH = "M3 5h14M3 10h14M3 15h8";
 
 const Orders = () => {
   const formRef = useRef(null);
@@ -28,163 +42,118 @@ const Orders = () => {
   const [statusFilter, setStatusFilter] = useState("todos");
 
   const { data: rawOrders, loading, error, refetch } = useFetch(
-    API_ENDPOINTS.ORDERS,
-    true,
-    5 * 60 * 1000
+    API_ENDPOINTS.ORDERS, true, 5 * 60 * 1000
   );
 
-  const orders = useMemo(() => {
-    return (rawOrders || []).map((order) => ({
-      ...order,
-      id: order.order_id || order.id,
-      client: order.client_name || order.client,
-      total_amount: order.total || order.total_amount,
-    }));
-  }, [rawOrders]);
-
-  const { search, setSearch, filtered: searchFiltered } = useSearch(orders, [
-    "client",
-    "id",
-  ]);
-
-  const filtered = useMemo(() => {
-    return searchFiltered.filter(
-      (o) => statusFilter === "todos" || o.status === statusFilter
-    );
-  }, [searchFiltered, statusFilter]);
-
-  const { paginatedItems, currentPage, goToPage, totalPages } = usePagination(
-    filtered,
-    10
+  const orders = useMemo(() =>
+    (rawOrders || []).map((o) => ({
+      ...o,
+      id: o.order_id ?? o.id,
+      client: o.client_name ?? o.client,
+      total_amount: o.total ?? o.total_amount,
+    })), [rawOrders]
   );
 
-  const statuses = useMemo(() => {
-    return ["todos", ...new Set(orders.map((o) => o.status).filter(Boolean))];
-  }, [orders]);
+  const { search, setSearch, filtered: searchFiltered } = useSearch(orders, ["client", "id"]);
 
-  const handleEditOrder = (order) => {
+  const filtered = useMemo(() =>
+    searchFiltered.filter((o) => statusFilter === "todos" || o.status === statusFilter),
+    [searchFiltered, statusFilter]
+  );
+
+  const statuses = useMemo(() =>
+    ["todos", ...new Set(orders.map((o) => o.status).filter(Boolean))],
+    [orders]
+  );
+
+  const { paginatedItems, currentPage, goToPage, totalPages } = usePagination(filtered, 10);
+
+  const handleEdit = (order) => {
     setEditingOrder(order);
-    if (formRef.current) {
-      formRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const handleDeleteOrder = async (id) => {
+  const handleDelete = async (id) => {
     try {
       await api.delete(`${API_ENDPOINTS.ORDERS}/${id}`);
-      notificationService.success("Pedido deletado com sucesso!");
+      notificationService.success("Pedido deletado!");
       refetch();
     } catch (err) {
-      const message = errorService.handle(err, "deleção do pedido");
-      notificationService.error(message);
+      notificationService.error(errorService.handle(err, "deletar pedido"));
     }
   };
-
-  const handleCancel = () => setEditingOrder(null);
-
-  if (error) {
-    return (
-      <div style={{ padding: "20px", textAlign: "center" }}>
-        <p style={{ color: "#ef4444" }}>Erro: {error}</p>
-      </div>
-    );
-  }
 
   return (
     <div className="main-content">
-      <div className="topbar">
-        <div className="topbar-title">Pedidos</div>
-        <div className="topbar-right">
-          <Input
-            placeholder="🔍 Buscar pedido..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="input"
-          >
-            {statuses.map((s) => (
-              <option key={s} value={s}>
-                {s.charAt(0).toUpperCase() + s.slice(1)}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      <PageShell
+        title="Pedidos"
+        count={loading ? null : filtered.length}
+        icon={ICON_PATH}
+        description="Gerencie pedidos e acompanhe status"
+        actions={
+          <>
+            <input
+              className="input"
+              placeholder="Buscar pedido..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{ width: 200 }}
+            />
+            <select
+              className="input"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              style={{ width: 150 }}
+            >
+              {statuses.map((s) => (
+                <option key={s} value={s}>
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                </option>
+              ))}
+            </select>
+          </>
+        }
+      />
 
       <div className="page-body">
-        {/* Formulário */}
-        <div ref={formRef} className="animate-fadeUp">
-          <Card title={editingOrder ? "✏️ Editar Pedido" : "➕ Novo Pedido"}>
+        {error && <div className="alert alert-danger">{error}</div>}
+
+        <div ref={formRef}>
+          <div className="chart-card">
+            <div className="chart-header">
+              <div className="chart-title">
+                {editingOrder ? "✎ Editar pedido" : "+ Novo pedido"}
+              </div>
+            </div>
             <OrderForm
               onOrderCreated={refetch}
               editingOrder={editingOrder}
-              onCancel={handleCancel}
+              onCancel={() => setEditingOrder(null)}
             />
-          </Card>
+          </div>
         </div>
 
-        {/* Tabela */}
-        <div className="chart-card animate-fadeUp">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <div className="chart-title" style={{ marginBottom: 0 }}>
-              Lista de Pedidos
-              <span className="badge badge-blue" style={{ marginLeft: 10 }}>
-                {filtered.length}
-              </span>
-            </div>
-          </div>
-
+        <div className="chart-card">
           <DataTable
             rows={paginatedItems}
             columns={[
-              {
-                key: "id",
-                label: "ID",
-                render: (value) => `#${value}`,
-              },
-              { key: "client", label: "Cliente" },
-              {
-                key: "total_amount",
-                label: "Total",
-                render: (value) => formatCurrency(value),
-              },
-              {
-                key: "status",
-                label: "Status",
-                render: (value) => {
-                  const color = STATUS_COLORS[value] || STATUS_COLORS.pendente;
-                  return (
-                    <span style={{
-                      display: "inline-block",
-                      padding: "6px 12px",
-                      backgroundColor: color.bg,
-                      color: color.text,
-                      borderRadius: "var(--radius-md)",
-                      fontSize: "var(--text-sm)",
-                      fontWeight: "600",
-                      border: `1px solid ${color.text}20`,
-                      whiteSpace: "nowrap",
-                    }}>
-                      {color.label}
-                    </span>
-                  );
-                },
-              },
+              { key: "id",           label: "ID",
+                render: (v) => <span style={{ fontFamily: "var(--font-mono)", color: "var(--color-textMuted)" }}>#{v}</span> },
+              { key: "client",       label: "Cliente" },
+              { key: "total_amount", label: "Total",
+                render: (v) => <span style={{ fontFamily: "var(--font-mono)", fontWeight: 600 }}>{formatCurrency(v)}</span> },
+              { key: "status",       label: "Status",
+                render: (v) => <StatusBadge status={v} /> },
+              { key: "created_at",   label: "Data",
+                render: (v) => v ? new Date(v).toLocaleDateString("pt-BR") : "—" },
             ]}
-            onEdit={handleEditOrder}
-            onDelete={handleDeleteOrder}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
             isLoading={loading}
             emptyMessage="Nenhum pedido encontrado"
+            emptyIcon="orders"
           />
-
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={goToPage}
-          />
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
         </div>
       </div>
     </div>

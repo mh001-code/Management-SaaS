@@ -1,335 +1,369 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useValidation } from "../hooks/useValidation";
+
+const RULES = {
+  email:    { required: true, email: true },
+  password: { required: true, min: 6 },
+};
 
 const Login = () => {
   const { login } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [values, setValues]   = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [serverError, setServerError] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
+
+  const { errors, touched, touch, touchAll } = useValidation(RULES);
+
+  const handleChange = useCallback((field, value) => {
+    setValues((prev) => ({ ...prev, [field]: value }));
+    if (touched[field]) touch(field, { ...values, [field]: value });
+    if (serverError) setServerError("");
+  }, [values, touched, touch, serverError]);
+
+  const handleBlur = useCallback((field) => {
+    touch(field, values);
+  }, [touch, values]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    const valid = touchAll(values);
+    if (!valid) return;
+
     setLoading(true);
+    setServerError("");
     try {
-      await login(email, password);
-    } catch (err) {
-      setError("Email ou senha inválidos.");
-      console.error(err);
+      await login(values.email, values.password);
+    } catch {
+      setServerError("E-mail ou senha incorretos. Verifique suas credenciais.");
     } finally {
       setLoading(false);
     }
   };
 
+  const emailError   = touched.email    ? errors.email    : undefined;
+  const passwordError= touched.password ? errors.password : undefined;
+
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
 
-        .login-root {
-          min-height: 100vh;
-          width: 100%;
-          display: flex;
-          font-family: 'DM Sans', sans-serif;
-          background: #0a0a0f;
+        .lg-root {
+          min-height: 100vh; width: 100%;
+          display: flex; background: #0D0D12;
+          font-family: 'Space Grotesk', sans-serif;
           overflow: hidden;
-          position: relative;
         }
 
-        /* Left decorative panel */
-        .login-panel {
-          flex: 1;
-          display: none;
-          flex-direction: column;
-          justify-content: space-between;
-          padding: 48px;
-          position: relative;
-          overflow: hidden;
-          background: linear-gradient(135deg, #0f0f1a 0%, #12122a 100%);
+        /* Painel esquerdo decorativo */
+        .lg-panel {
+          flex: 1; display: none; flex-direction: column;
+          justify-content: space-between; padding: 48px;
+          background: #0F0F1A; position: relative; overflow: hidden;
         }
-        @media (min-width: 900px) { .login-panel { display: flex; } }
+        @media (min-width: 900px) { .lg-panel { display: flex; } }
 
-        .panel-orb {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(80px);
-          opacity: 0.25;
-          pointer-events: none;
+        .lg-orb {
+          position: absolute; border-radius: 50%;
+          filter: blur(90px); opacity: 0.18; pointer-events: none;
         }
-        .orb1 { width: 420px; height: 420px; background: #4f6ef7; top: -80px; left: -80px; }
-        .orb2 { width: 300px; height: 300px; background: #7c3aed; bottom: 60px; right: -60px; }
-        .orb3 { width: 200px; height: 200px; background: #06b6d4; top: 40%; left: 30%; }
+        .orb1 { width:460px; height:460px; background:#7C6AF7; top:-100px; left:-80px; }
+        .orb2 { width:320px; height:320px; background:#00D4AA; bottom:40px; right:-60px; }
+        .orb3 { width:200px; height:200px; background:#F7916A; top:42%; left:35%; }
 
-        .panel-logo {
-          font-family: 'Syne', sans-serif;
-          font-size: 22px;
-          font-weight: 800;
-          color: #fff;
-          letter-spacing: -0.5px;
-          display: flex;
-          align-items: center;
-          gap: 10px;
+        .lg-logo {
+          font-size: 18px; font-weight: 700; color: #F0F0F8;
+          letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px;
           z-index: 1;
         }
-        .panel-logo-dot {
-          width: 8px; height: 8px;
-          background: #4f6ef7;
-          border-radius: 50%;
+        .lg-logo-dot {
+          width: 8px; height: 8px; border-radius: 50%; background: #7C6AF7;
         }
 
-        .panel-headline {
-          z-index: 1;
+        .lg-headline { z-index: 1; }
+        .lg-headline h2 {
+          font-size: clamp(30px, 3.2vw, 44px); font-weight: 700;
+          color: #F0F0F8; line-height: 1.15; margin: 0 0 14px;
+          letter-spacing: -1px;
         }
-        .panel-headline h2 {
-          font-family: 'Syne', sans-serif;
-          font-size: clamp(32px, 3.5vw, 48px);
-          font-weight: 800;
-          color: #fff;
-          line-height: 1.15;
-          margin: 0 0 16px;
-        }
-        .panel-headline p {
-          color: rgba(255,255,255,0.45);
-          font-size: 15px;
-          line-height: 1.7;
-          max-width: 320px;
+        .lg-headline p {
+          color: rgba(240,240,248,0.4); font-size: 14px; line-height: 1.7;
+          max-width: 300px;
         }
 
-        .panel-stats {
-          display: flex;
-          gap: 32px;
-          z-index: 1;
+        .lg-stats { display: flex; gap: 32px; z-index: 1; }
+        .lg-stat-val {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 26px; font-weight: 500; color: #F0F0F8;
         }
-        .stat-item { }
-        .stat-value {
-          font-family: 'Syne', sans-serif;
-          font-size: 28px;
-          font-weight: 700;
-          color: #fff;
-        }
-        .stat-label {
-          font-size: 12px;
-          color: rgba(255,255,255,0.4);
-          margin-top: 2px;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
+        .lg-stat-label {
+          font-size: 11px; color: rgba(240,240,248,0.35);
+          text-transform: uppercase; letter-spacing: 0.8px; margin-top: 3px;
         }
 
-        /* Right form panel */
-        .login-form-side {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 32px 20px;
-          background: #0a0a0f;
-          position: relative;
+        /* Painel direito — formulário */
+        .lg-form-side {
+          width: 100%; display: flex; align-items: center;
+          justify-content: center; padding: 32px 24px;
+          background: #0D0D12;
         }
-        @media (min-width: 900px) {
-          .login-form-side {
-            width: 420px;
-            min-width: 420px;
-            flex-shrink: 0;
-          }
-        }
+        @media (min-width: 900px) { .lg-form-side { width: 420px; min-width: 420px; flex-shrink: 0; } }
 
-        .form-card {
-          width: 100%;
-          max-width: 360px;
-          animation: slideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+        .lg-card {
+          width: 100%; max-width: 360px;
+          animation: slideUp .5s cubic-bezier(0.22,1,0.36,1) both;
         }
         @keyframes slideUp {
-          from { opacity: 0; transform: translateY(24px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { opacity:0; transform:translateY(24px); }
+          to   { opacity:1; transform:translateY(0); }
         }
 
-        .form-eyebrow {
-          font-size: 11px;
-          text-transform: uppercase;
-          letter-spacing: 2px;
-          color: #4f6ef7;
-          font-weight: 600;
-          margin-bottom: 12px;
+        .lg-eyebrow {
+          font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
+          color: #7C6AF7; font-weight: 600; margin-bottom: 10px;
+        }
+        .lg-title {
+          font-size: 30px; font-weight: 700; color: #F0F0F8;
+          margin: 0 0 6px; letter-spacing: -0.8px;
+        }
+        .lg-sub {
+          font-size: 13px; color: rgba(240,240,248,0.35); margin-bottom: 32px;
         }
 
-        .form-title {
-          font-family: 'Syne', sans-serif;
-          font-size: 32px;
-          font-weight: 800;
-          color: #fff;
-          margin: 0 0 8px;
-          line-height: 1.1;
+        /* Campo */
+        .lg-field { margin-bottom: 18px; }
+        .lg-label {
+          display: block; font-size: 11px; font-weight: 600;
+          color: rgba(240,240,248,0.5); text-transform: uppercase;
+          letter-spacing: 0.8px; margin-bottom: 7px;
+          transition: color 150ms;
         }
+        .lg-label.has-error { color: #F76464; }
 
-        .form-subtitle {
-          font-size: 14px;
-          color: rgba(255,255,255,0.35);
-          margin-bottom: 36px;
-        }
-
-        .field-group {
-          margin-bottom: 20px;
-        }
-
-        .field-label {
-          display: block;
-          font-size: 12px;
-          font-weight: 500;
-          color: rgba(255,255,255,0.5);
-          text-transform: uppercase;
-          letter-spacing: 0.8px;
-          margin-bottom: 8px;
-        }
-
-        .field-input {
-          width: 100%;
-          padding: 14px 16px;
+        .lg-input-wrap { position: relative; }
+        .lg-input {
+          width: 100%; padding: 13px 42px 13px 14px;
           background: rgba(255,255,255,0.04);
           border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 10px;
-          color: #fff;
-          font-size: 15px;
-          font-family: 'DM Sans', sans-serif;
+          border-radius: 10px; color: #F0F0F8;
+          font-size: 14px; font-family: 'Space Grotesk', sans-serif;
           outline: none;
-          transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+          transition: border-color 200ms, box-shadow 200ms;
           box-sizing: border-box;
         }
-        .field-input::placeholder { color: rgba(255,255,255,0.2); }
-        .field-input:focus {
-          border-color: #4f6ef7;
-          background: rgba(79,110,247,0.06);
-          box-shadow: 0 0 0 3px rgba(79,110,247,0.12);
+        .lg-input::placeholder { color: rgba(240,240,248,0.2); }
+        .lg-input:focus {
+          border-color: #7C6AF7;
+          box-shadow: 0 0 0 3px rgba(124,106,247,0.14);
+        }
+        .lg-input.has-error {
+          border-color: #F76464;
+          box-shadow: 0 0 0 3px rgba(247,100,100,0.12);
+          animation: shake .35s ease;
+        }
+        .lg-input.has-success { border-color: #00D4AA; }
+
+        @keyframes shake {
+          0%,100%{ transform:translateX(0) }
+          20%    { transform:translateX(-4px) }
+          40%    { transform:translateX(4px) }
+          60%    { transform:translateX(-3px) }
+          80%    { transform:translateX(3px) }
         }
 
-        .error-msg {
-          background: rgba(239,68,68,0.1);
-          border: 1px solid rgba(239,68,68,0.2);
-          border-radius: 8px;
-          padding: 10px 14px;
-          color: #f87171;
-          font-size: 13px;
-          text-align: center;
-          margin-bottom: 20px;
+        .lg-input-icon {
+          position: absolute; right: 13px; top: 50%;
+          transform: translateY(-50%);
+          display: flex; align-items: center;
+          color: rgba(240,240,248,0.3); pointer-events: none;
+        }
+        .lg-input-icon.clickable {
+          pointer-events: auto; cursor: pointer;
+          transition: color 150ms;
+        }
+        .lg-input-icon.clickable:hover { color: rgba(240,240,248,0.7); }
+
+        .lg-field-error {
+          display: flex; align-items: center; gap: 5px;
+          font-size: 11px; color: #F76464; margin-top: 6px;
+          animation: fadeMsg .2s ease;
+        }
+        @keyframes fadeMsg {
+          from { opacity:0; transform:translateY(-3px); }
+          to   { opacity:1; transform:translateY(0); }
         }
 
-        .submit-btn {
-          width: 100%;
-          padding: 15px;
-          background: #4f6ef7;
-          color: #fff;
-          border: none;
+        /* Erro do servidor */
+        .lg-server-error {
+          display: flex; align-items: flex-start; gap: 10px;
+          padding: 11px 14px; margin-bottom: 20px;
+          background: rgba(247,100,100,0.08);
+          border: 1px solid rgba(247,100,100,0.2);
           border-radius: 10px;
-          font-size: 15px;
-          font-family: 'Syne', sans-serif;
-          font-weight: 700;
-          cursor: pointer;
-          transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-          letter-spacing: 0.3px;
-          box-shadow: 0 4px 24px rgba(79,110,247,0.35);
+          color: #F76464; font-size: 13px; line-height: 1.4;
+          animation: fadeMsg .2s ease;
+        }
+
+        /* Botão */
+        .lg-submit {
+          width: 100%; padding: 14px;
+          background: #7C6AF7; color: #fff;
+          border: none; border-radius: 10px;
+          font-size: 14px; font-weight: 700;
+          font-family: 'Space Grotesk', sans-serif;
+          cursor: pointer; letter-spacing: 0.2px;
+          transition: opacity 150ms, transform 150ms;
+          display: flex; align-items: center; justify-content: center; gap: 8px;
           margin-top: 4px;
         }
-        .submit-btn:hover:not(:disabled) {
-          background: #3d5ce8;
-          transform: translateY(-1px);
-          box-shadow: 0 8px 32px rgba(79,110,247,0.45);
-        }
-        .submit-btn:active:not(:disabled) { transform: translateY(0); }
-        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .lg-submit:hover:not(:disabled) { opacity: .88; transform: translateY(-1px); }
+        .lg-submit:active:not(:disabled) { transform: translateY(0); }
+        .lg-submit:disabled { opacity: .55; cursor: not-allowed; }
 
-        .spinner {
-          display: inline-block;
-          width: 14px; height: 14px;
-          border: 2px solid rgba(255,255,255,0.3);
-          border-top-color: #fff;
-          border-radius: 50%;
-          animation: spin 0.7s linear infinite;
-          margin-right: 8px;
-          vertical-align: middle;
-        }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        .divider {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin: 28px 0;
-          color: rgba(255,255,255,0.15);
-          font-size: 12px;
+        .lg-spinner {
+          width: 15px; height: 15px;
+          border: 2px solid rgba(255,255,255,.25);
+          border-top-color: #fff;
+          border-radius: 50%; animation: spin .7s linear infinite;
+          flex-shrink: 0;
         }
-        .divider-line { flex: 1; height: 1px; background: rgba(255,255,255,0.06); }
       `}</style>
 
-      <div className="login-root">
-        {/* Decorative left panel */}
-        <div className="login-panel">
-          <div className="panel-orb orb1" />
-          <div className="panel-orb orb2" />
-          <div className="panel-orb orb3" />
-
-          <div className="panel-logo">
-            <div className="panel-logo-dot" />
-            ManageSaaS
-          </div>
-
-          <div className="panel-headline">
+      <div className="lg-root">
+        {/* Painel decorativo */}
+        <div className="lg-panel">
+          <div className="lg-orb orb1" />
+          <div className="lg-orb orb2" />
+          <div className="lg-orb orb3" />
+          <div className="lg-logo"><div className="lg-logo-dot" />ManageSaaS</div>
+          <div className="lg-headline">
             <h2>Gestão simples.<br />Resultados reais.</h2>
             <p>Controle clientes, produtos e pedidos em um só lugar — rápido, seguro e acessível de qualquer dispositivo.</p>
           </div>
-
-          <div className="panel-stats">
-            <div className="stat-item">
-              <div className="stat-value">100%</div>
-              <div className="stat-label">Web-based</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-value">JWT</div>
-              <div className="stat-label">Segurança</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-value">MVP</div>
-              <div className="stat-label">Pronto para usar</div>
-            </div>
+          <div className="lg-stats">
+            <div><div className="lg-stat-val">JWT</div><div className="lg-stat-label">Seguro</div></div>
+            <div><div className="lg-stat-val">100%</div><div className="lg-stat-label">Web-based</div></div>
+            <div><div className="lg-stat-val">MVP</div><div className="lg-stat-label">Pronto</div></div>
           </div>
         </div>
 
-        {/* Form side */}
-        <div className="login-form-side">
-          <div className="form-card">
-            <div className="form-eyebrow">Bem-vindo de volta</div>
-            <h1 className="form-title">Entrar na conta</h1>
-            <p className="form-subtitle">Digite suas credenciais para continuar</p>
+        {/* Formulário */}
+        <div className="lg-form-side">
+          <div className="lg-card">
+            <div className="lg-eyebrow">Bem-vindo de volta</div>
+            <h1 className="lg-title">Entrar na conta</h1>
+            <p className="lg-sub">Digite suas credenciais para continuar</p>
 
-            {error && <div className="error-msg">{error}</div>}
+            {serverError && (
+              <div className="lg-server-error">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
+                  <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M8 5v3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  <circle cx="8" cy="11" r=".75" fill="currentColor"/>
+                </svg>
+                {serverError}
+              </div>
+            )}
 
-            <form onSubmit={handleSubmit}>
-              <div className="field-group">
-                <label className="field-label">Email</label>
-                <input
-                  type="email"
-                  className="field-input"
-                  placeholder="seu@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+            <form onSubmit={handleSubmit} noValidate>
+              {/* Email */}
+              <div className="lg-field">
+                <label className={`lg-label ${emailError ? "has-error" : ""}`}>E-mail</label>
+                <div className="lg-input-wrap">
+                  <input
+                    type="email"
+                    className={`lg-input ${emailError ? "has-error" : touched.email && !emailError ? "has-success" : ""}`}
+                    placeholder="seu@email.com"
+                    value={values.email}
+                    onChange={(e) => handleChange("email", e.target.value)}
+                    onBlur={() => handleBlur("email")}
+                    autoComplete="email"
+                    required
+                  />
+                  <div className="lg-input-icon">
+                    {emailError ? (
+                      <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="8" r="7" stroke="#F76464" strokeWidth="1.5"/>
+                        <path d="M8 5v3.5" stroke="#F76464" strokeWidth="1.5" strokeLinecap="round"/>
+                        <circle cx="8" cy="11" r=".75" fill="#F76464"/>
+                      </svg>
+                    ) : touched.email && !emailError ? (
+                      <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="8" r="7" stroke="#00D4AA" strokeWidth="1.5"/>
+                        <path d="M5 8l2 2 4-4" stroke="#00D4AA" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    ) : (
+                      <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                        <path d="M2 4h12v8H2z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+                        <path d="M2 4l6 5 6-5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                      </svg>
+                    )}
+                  </div>
+                </div>
+                {emailError && (
+                  <div className="lg-field-error">
+                    <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                      <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2"/>
+                      <path d="M6 4v2.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                      <circle cx="6" cy="8.5" r=".5" fill="currentColor"/>
+                    </svg>
+                    {emailError}
+                  </div>
+                )}
               </div>
 
-              <div className="field-group">
-                <label className="field-label">Senha</label>
-                <input
-                  type="password"
-                  className="field-input"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+              {/* Senha */}
+              <div className="lg-field">
+                <label className={`lg-label ${passwordError ? "has-error" : ""}`}>Senha</label>
+                <div className="lg-input-wrap">
+                  <input
+                    type={showPwd ? "text" : "password"}
+                    className={`lg-input ${passwordError ? "has-error" : touched.password && !passwordError ? "has-success" : ""}`}
+                    placeholder="••••••••"
+                    value={values.password}
+                    onChange={(e) => handleChange("password", e.target.value)}
+                    onBlur={() => handleBlur("password")}
+                    autoComplete="current-password"
+                    required
+                  />
+                  <div
+                    className="lg-input-icon clickable"
+                    onClick={() => setShowPwd((p) => !p)}
+                    title={showPwd ? "Ocultar senha" : "Mostrar senha"}
+                  >
+                    {showPwd ? (
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M2 8s2.5-4 6-4 6 4 6 4-2.5 4-6 4-6-4-6-4z" stroke="currentColor" strokeWidth="1.3"/>
+                        <circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.3"/>
+                        <path d="M2 2l12 12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                      </svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M2 8s2.5-4 6-4 6 4 6 4-2.5 4-6 4-6-4-6-4z" stroke="currentColor" strokeWidth="1.3"/>
+                        <circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.3"/>
+                      </svg>
+                    )}
+                  </div>
+                </div>
+                {passwordError && (
+                  <div className="lg-field-error">
+                    <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                      <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2"/>
+                      <path d="M6 4v2.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                      <circle cx="6" cy="8.5" r=".5" fill="currentColor"/>
+                    </svg>
+                    {passwordError}
+                  </div>
+                )}
               </div>
 
-              <button type="submit" className="submit-btn" disabled={loading}>
-                {loading && <span className="spinner" />}
-                {loading ? "Entrando..." : "Entrar"}
+              <button type="submit" className="lg-submit" disabled={loading}>
+                {loading ? (
+                  <><div className="lg-spinner" /> Entrando...</>
+                ) : "Entrar"}
               </button>
             </form>
           </div>
