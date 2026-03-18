@@ -14,6 +14,7 @@ const Clients   = lazy(() => import("./pages/Clients"));
 const Products  = lazy(() => import("./pages/Products"));
 const Orders    = lazy(() => import("./pages/Orders"));
 const Users     = lazy(() => import("./pages/Users"));
+const Financial = lazy(() => import('./pages/Financial'));
 const Suppliers = lazy(() => import("./pages/Suppliers"));
 
 const PageLoader = () => (
@@ -60,7 +61,8 @@ const App = () => (
         <Route path="/products"   element={<Products />} />
         <Route path="/orders"     element={<Orders />} />
         <Route path="/users"      element={<Users />} />
-        <Route path="/suppliers"  element={<Suppliers />} />
+        <Route path="/financial"  element={<Financial />} />
+          <Route path="/suppliers"  element={<Suppliers />} />
       </Route>
 
       {/* Fallback */}

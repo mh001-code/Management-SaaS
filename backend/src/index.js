@@ -16,6 +16,7 @@ import logMiddleware from "./middlewares/logMiddleware.js";
 import logRoutes from "./routes/logRoutes.js";
 import summaryRoutes from "./routes/summaryRoutes.js";
 import suppliersRoutes from "./routes/suppliersRoutes.js";
+import financialRoutes from './routes/financialRoutes.js';
 import purchaseOrdersRoutes from "./routes/purchaseOrdersRoutes.js";
 
 dotenv.config();
@@ -51,6 +52,7 @@ app.use("/api/users",           authMiddleware, userRoutes);
 app.use("/api/products",        authMiddleware, productRoutes);
 app.use("/api/clients",         authMiddleware, clientsRoutes);
 app.use("/api/orders",          authMiddleware, ordersRoutes);
+app.use("/api/financial",       authMiddleware, financialRoutes);
 app.use("/api/suppliers",       authMiddleware, suppliersRoutes);
 app.use("/api/purchase-orders", authMiddleware, purchaseOrdersRoutes);
 
