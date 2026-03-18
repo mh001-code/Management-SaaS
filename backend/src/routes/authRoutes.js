@@ -30,7 +30,7 @@
  *                 example: "marcio@email.com"
  *               password:
  *                 type: string
- *                 example: "123456"
+ *                 example: "senha_forte_aqui"
  *     responses:
  *       201:
  *         description: Usuário criado
@@ -59,25 +59,37 @@
  *                 example: "marcio@email.com"
  *               password:
  *                 type: string
- *                 example: "123456"
+ *                 example: "senha_forte_aqui"
  *     responses:
  *       200:
  *         description: Retorna JWT
  *       401:
  *         description: Credenciais inválidas
+ *       429:
+ *         description: Muitas tentativas — tente novamente em 15 minutos
  */
 
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import { login, register, me } from "../controllers/authController.js";
 import { validateUserCreation } from "../middlewares/validateUser.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 
 const router = Router();
 
-router.post("/register", validateUserCreation, register);
-router.post("/login", login);
+// ✅ Proteção contra força bruta — máximo 10 tentativas por IP a cada 15 minutos
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: "Muitas tentativas de login. Tente novamente em 15 minutos.",
+  },
+});
 
-// ✅ Rota protegida para restaurar sessão após F5
+router.post("/register", validateUserCreation, register);
+router.post("/login", loginLimiter, login);
 router.get("/me", authMiddleware, me);
 
 export default router;

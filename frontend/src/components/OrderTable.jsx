@@ -2,27 +2,39 @@ import React from "react";
 import TableContainer from "./TableContainer";
 import CardTable from "./CardTable";
 import api from "../services/api";
+import notificationService from "../services/notificationService";
 
 const nextStatuses = {
-  pendente: ["pago", "cancelado"],
-  pago: ["enviado", "cancelado"],
-  enviado: ["entregue", "estornado", "recusado", "cancelado"],
-  entregue: ["estornado", "cancelado"],
+  pendente:  ["pago", "cancelado"],
+  pago:      ["enviado", "cancelado"],
+  enviado:   ["entregue", "estornado", "recusado", "cancelado"],
+  entregue:  ["estornado", "cancelado"],
   concluído: [],
   cancelado: [],
   estornado: [],
-  recusado: []
+  recusado:  [],
 };
 
 const label = {
-  pendente: "Pendente",
-  pago: "Pago",
-  enviado: "Enviado",
-  entregue: "Entregue",
+  pendente:  "Pendente",
+  pago:      "Pago",
+  enviado:   "Enviado",
+  entregue:  "Entregue",
   concluído: "Concluído",
   cancelado: "Cancelado",
   estornado: "Estornado",
-  recusado: "Recusado"
+  recusado:  "Recusado",
+};
+
+const statusColors = {
+  pendente:  "bg-amber-600",
+  pago:      "bg-emerald-600",
+  enviado:   "bg-sky-600",
+  entregue:  "bg-teal-600",
+  concluído: "bg-indigo-600",
+  cancelado: "bg-rose-600",
+  estornado: "bg-gray-600",
+  recusado:  "bg-red-700",
 };
 
 const OrderTable = ({ orders, setEditingOrder, fetchOrders }) => {
@@ -30,19 +42,50 @@ const OrderTable = ({ orders, setEditingOrder, fetchOrders }) => {
     if (!window.confirm("Deseja realmente excluir este pedido?")) return;
     try {
       await api.delete(`/orders/${id}`);
+      notificationService.success("Pedido excluído com sucesso!");
       fetchOrders();
     } catch (err) {
-      console.error("Erro ao deletar pedido:", err);
+      // ✅ Feedback visual — antes o erro ia só para o console
+      const message = err.response?.data?.error || "Erro ao excluir pedido.";
+      notificationService.error(message);
     }
   };
 
   const handleStatusChange = async (id, status) => {
     try {
       await api.put(`/orders/${id}/status`, { status });
+      notificationService.success(`Status atualizado para "${label[status]}"`);
       fetchOrders();
     } catch (err) {
-      console.error("Erro ao atualizar status:", err);
+      // ✅ Feedback visual — antes o erro ia só para o console
+      const message = err.response?.data?.error || "Erro ao atualizar status.";
+      notificationService.error(message);
     }
+  };
+
+  const renderStatusBadge = (status) => (
+    <span
+      className={`inline-block px-2 py-1 rounded text-white text-xs font-semibold ${statusColors[status] || "bg-gray-500"}`}
+    >
+      {label[status] || status}
+    </span>
+  );
+
+  const renderStatusSelect = (order) => {
+    const options = nextStatuses[order.status];
+    if (!options?.length) return null;
+    return (
+      <select
+        defaultValue=""
+        onChange={(e) => handleStatusChange(order.order_id, e.target.value)}
+        className="border border-gray-300 rounded px-2 py-1 text-sm cursor-pointer hover:border-gray-500 transition focus:outline-none focus:ring-1 focus:ring-gray-400"
+      >
+        <option value="" disabled>Alterar...</option>
+        {options.map((s) => (
+          <option key={s} value={s}>{label[s]}</option>
+        ))}
+      </select>
+    );
   };
 
   const renderMobileRow = (order) => (
@@ -59,32 +102,8 @@ const OrderTable = ({ orders, setEditingOrder, fetchOrders }) => {
       </div>
       <p><span className="font-medium">Total:</span> R${Number(order.total).toFixed(2)}</p>
       <div className="flex items-center gap-2 mt-1">
-        <span className={`inline-block px-2 py-1 rounded text-white text-xs font-semibold
-          ${order.status === "pendente" && "bg-amber-600"}
-          ${order.status === "pago" && "bg-emerald-600"}
-          ${order.status === "enviado" && "bg-sky-600"}
-          ${order.status === "entregue" && "bg-teal-600"}
-          ${order.status === "concluído" && "bg-indigo-600"}
-          ${order.status === "cancelado" && "bg-rose-600"}
-          ${order.status === "estornado" && "bg-gray-600"}
-          ${order.status === "recusado" && "bg-red-700"}
-        `}>
-          {label[order.status]}
-        </span>
-
-        {/* Renderiza select apenas se houver opções */}
-        {nextStatuses[order.status]?.length > 0 && (
-          <select
-            defaultValue=""
-            onChange={(e) => handleStatusChange(order.order_id, e.target.value)}
-            className="border border-gray-300 rounded px-2 py-1 text-sm cursor-pointer hover:border-gray-500 transition focus:outline-none focus:ring-1 focus:ring-gray-400"
-          >
-            <option value="" disabled>Alterar...</option>
-            {nextStatuses[order.status].map((s) => (
-              <option key={s} value={s}>{label[s]}</option>
-            ))}
-          </select>
-        )}
+        {renderStatusBadge(order.status)}
+        {renderStatusSelect(order)}
       </div>
       <div className="flex gap-2 mt-2">
         <button
@@ -132,32 +151,8 @@ const OrderTable = ({ orders, setEditingOrder, fetchOrders }) => {
                 <td className="p-2">R${Number(order.total).toFixed(2)}</td>
                 <td className="p-2">
                   <div className="flex items-center gap-2">
-                    <span className={`inline-block px-2 py-1 rounded text-white text-xs font-semibold
-                    ${order.status === "pendente" && "bg-amber-600"}
-                    ${order.status === "pago" && "bg-emerald-600"}
-                    ${order.status === "enviado" && "bg-sky-600"}
-                    ${order.status === "entregue" && "bg-teal-600"}
-                    ${order.status === "concluído" && "bg-indigo-600"}
-                    ${order.status === "cancelado" && "bg-rose-600"}
-                    ${order.status === "estornado" && "bg-gray-600"}
-                    ${order.status === "recusado" && "bg-red-700"}
-                  `}>
-                      {label[order.status]}
-                    </span>
-
-                    {/* Renderiza select apenas se houver opções */}
-                    {nextStatuses[order.status]?.length > 0 && (
-                      <select
-                        defaultValue=""
-                        onChange={(e) => handleStatusChange(order.order_id, e.target.value)}
-                        className="border border-gray-300 rounded px-2 py-1 text-sm cursor-pointer hover:border-gray-500 transition focus:outline-none focus:ring-1 focus:ring-gray-400"
-                      >
-                        <option value="" disabled>Alterar...</option>
-                        {nextStatuses[order.status].map((s) => (
-                          <option key={s} value={s}>{label[s]}</option>
-                        ))}
-                      </select>
-                    )}
+                    {renderStatusBadge(order.status)}
+                    {renderStatusSelect(order)}
                   </div>
                 </td>
                 <td className="p-2 flex gap-2 justify-center">
@@ -180,7 +175,11 @@ const OrderTable = ({ orders, setEditingOrder, fetchOrders }) => {
         </table>
       </TableContainer>
 
-      <CardTable data={orders} renderRow={renderMobileRow} emptyMessage="Nenhum pedido encontrado." />
+      <CardTable
+        data={orders}
+        renderRow={renderMobileRow}
+        emptyMessage="Nenhum pedido encontrado."
+      />
     </>
   );
 };
