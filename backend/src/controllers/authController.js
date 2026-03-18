@@ -5,7 +5,6 @@ import jwt from "jsonwebtoken";
 // Login de usuário
 export const login = async (req, res, next) => {
   const { email, password } = req.body;
-  console.log("[LOGIN] Iniciando login para:", email);
 
   try {
     const result = await pool.query("SELECT * FROM users WHERE email=$1", [email]);
@@ -29,7 +28,10 @@ export const login = async (req, res, next) => {
       { expiresIn: "1h" }
     );
 
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+    res.json({
+      token,
+      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+    });
   } catch (err) {
     next(err);
   }
@@ -40,7 +42,7 @@ export const register = async (req, res, next) => {
   const { name, email, password, role } = req.body;
 
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     const result = await pool.query(
       "INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role, created_at",
@@ -64,7 +66,7 @@ export const register = async (req, res, next) => {
   }
 };
 
-// ✅ NOVO: Retorna usuário autenticado (persistência ao atualizar página)
+// Retorna usuário autenticado (persistência ao atualizar página)
 export const me = async (req, res) => {
   res.json({
     id: req.user.userId,

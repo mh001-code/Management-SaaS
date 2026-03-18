@@ -2,16 +2,16 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import * as UserModel from "../models/UserModel.js";
 
-// 📌 Registrar novo usuário
+// Registrar novo usuário
 export const registerUser = async (req, res, next) => {
   const { name, email, password } = req.body;
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 12);
     const newUser = await UserModel.createUser(name, email, hashedPassword);
 
     res.status(201).json({
       message: "Usuário registrado com sucesso",
-      user: { id: newUser.id, name: newUser.name, email: newUser.email }
+      user: { id: newUser.id, name: newUser.name, email: newUser.email },
     });
   } catch (err) {
     if (err.code === "23505") {
@@ -23,7 +23,7 @@ export const registerUser = async (req, res, next) => {
   }
 };
 
-// 📌 Login de usuário
+// Login de usuário
 export const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
   try {
@@ -43,19 +43,17 @@ export const loginUser = async (req, res, next) => {
       { expiresIn: "1h" }
     );
 
-
     res.json({
       message: "Login bem-sucedido",
       token,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role }
+      user: { id: user.id, name: user.name, email: user.email, role: user.role },
     });
-
   } catch (err) {
     next(err);
   }
 };
 
-// 📌 Listar todos os usuários
+// Listar todos os usuários (admin only)
 export const getUsers = async (req, res, next) => {
   if (req.user.role !== "admin") {
     return res.status(403).json({ error: "Você não tem permissão para acessar esta página." });
@@ -65,17 +63,14 @@ export const getUsers = async (req, res, next) => {
     const users = await UserModel.getAllUsers();
     res.json(users);
   } catch (err) {
-    console.error("[GET USERS] Erro ao buscar usuários:", err);
     next(err);
   }
 };
 
-
-// 📌 Buscar usuário por ID
+// Buscar usuário por ID
 export const getUserById = async (req, res, next) => {
   const { id } = req.params;
   try {
-    // Permitir acesso se for admin ou se for o próprio usuário
     if (req.user.role !== "admin" && req.user.userId !== parseInt(id)) {
       return res.status(403).json({ error: "Acesso negado" });
     }
@@ -93,27 +88,17 @@ export const getUserById = async (req, res, next) => {
   }
 };
 
-// 📌 Atualizar usuário
+// Atualizar usuário
 export const updateUser = async (req, res, next) => {
   const { id } = req.params;
   const { name, email, password, role } = req.body;
 
-  console.log("\n====================");
-  console.log("[CONTROLLER] PUT /api/users/:id");
-  console.log("[CONTROLLER] ID recebido:", id);
-  console.log("[CONTROLLER] Body recebido:", { name, email, password, role });
-  console.log("[CONTROLLER] Usuário autenticado:", req.user);
-
   try {
     let hashedPassword;
     if (password && password.trim() !== "") {
-      hashedPassword = await bcrypt.hash(password, 10);
-      console.log("[CONTROLLER] Senha foi criptografada.");
-    } else {
-      console.log("[CONTROLLER] Campo senha vazio — ignorando atualização de senha.");
+      hashedPassword = await bcrypt.hash(password, 12);
     }
 
-    console.log("[CONTROLLER] Chamando model.updateUser...");
     let updatedUser;
     if (req.user.role === "admin") {
       updatedUser = await UserModel.updateUser(id, name, email, hashedPassword, role);
@@ -121,27 +106,17 @@ export const updateUser = async (req, res, next) => {
       updatedUser = await UserModel.updateUser(id, name, email, hashedPassword);
     }
 
-    console.log("[CONTROLLER] Retorno do model:", updatedUser);
-
     if (!updatedUser) {
-      console.log("[CONTROLLER] Nenhum usuário encontrado para atualização.");
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
-    res.json({
-      message: "Usuário atualizado com sucesso",
-      user: updatedUser,
-    });
+    res.json({ message: "Usuário atualizado com sucesso", user: updatedUser });
   } catch (err) {
-    console.error("[CONTROLLER] ERRO AO ATUALIZAR USUÁRIO:");
-    console.error("→ Mensagem:", err.message);
-    console.error("→ Código:", err.code);
-    console.error("→ Stack:", err.stack);
     next(err);
   }
 };
 
-// 📌 Deletar usuário
+// Deletar usuário
 export const deleteUser = async (req, res, next) => {
   const { id } = req.params;
   try {

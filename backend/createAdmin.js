@@ -6,7 +6,6 @@ dotenv.config();
 
 const { Pool } = pkg;
 
-// ✅ Nunca hardcode credenciais — use variáveis de ambiente
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
@@ -34,7 +33,6 @@ const createAdmin = async () => {
   }
 
   try {
-    // Verifica se já existe admin com esse email
     const existing = await pool.query(
       "SELECT id FROM users WHERE email = $1",
       [adminEmail]
@@ -45,7 +43,7 @@ const createAdmin = async () => {
       return;
     }
 
-    const passwordHash = await bcrypt.hash(adminPassword, 12); // ✅ salt 12 (mais seguro que 10)
+    const passwordHash = await bcrypt.hash(adminPassword, 12);
 
     await pool.query(
       "INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4)",

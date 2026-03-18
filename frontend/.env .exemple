@@ -1,0 +1,8 @@
+# ─── API ─────────────────────────────────────────────────────────────────────
+# URL base do backend. Em desenvolvimento o proxy do Vite já resolve,
+# mas em produção aponte para a URL do seu backend hospedado.
+VITE_API_URL=http://localhost:5000/api
+
+# Exemplos de produção:
+# VITE_API_URL=https://seu-backend.railway.app/api
+# VITE_API_URL=https://seu-backend.onrender.com/api
