@@ -1,359 +1,424 @@
-import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
-import { FaBars, FaTachometerAlt, FaUsers, FaBoxOpen, FaShoppingCart, FaUserShield, FaSignOutAlt } from "react-icons/fa";
+import React, { useState, useEffect } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
+const Icon = ({ d, size = 17 }) => (
+  <svg width={size} height={size} viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0 }}>
+    <path d={d} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const ICONS = {
+  dashboard: "M3 3h6v6H3zM11 3h6v6h-6zM3 11h6v6H3zM11 11h6v6h-6z",
+  clients:   "M10 9a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 9a7 7 0 0 1 14 0",
+  products:  "M4 4h12v3H4zM4 10h12v6H4z",
+  orders:    "M4 5h12M4 10h12M4 15h7",
+  users:     "M7 8a3 3 0 1 0 6 0 3 3 0 0 0-6 0M3 18a7 7 0 0 1 14 0",
+  suppliers: "M17 9a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM3 20a7 7 0 0 1 14 0M19 8v6M22 11h-6",
+  logout:    "M7 3H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h3M13 14l4-4-4-4M7 10h10",
+  menu:      "M3 5h14M3 10h14M3 15h14",
+  close:     "M3 3l14 14M17 3L3 17",
+  chevronR:  "M8 4l6 6-6 6",
+  chevronL:  "M12 4L6 10l6 6",
+};
+
+const LINKS = [
+  { name: "Dashboard", path: "/dashboard", icon: "dashboard" },
+  { name: "Clientes",  path: "/clients",   icon: "clients"   },
+  { name: "Produtos",  path: "/products",  icon: "products"  },
+  { name: "Pedidos",   path: "/orders",    icon: "orders"    },
+  { name: "Usuários",      path: "/users",      icon: "users"     },
+  { name: "Fornecedores", path: "/suppliers",  icon: "suppliers" },
+];
+
+const SB_FULL = 240;
+const SB_SLIM = 72;
+
+// ─── Sidebar principal ────────────────────────────────────────────────────────
 const Sidebar = () => {
-  const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [showHamburger, setShowHamburger] = useState(true);
   const { user, logout } = useAuth();
+  const location = useLocation();
+  const [collapsed, setCollapsed]   = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mounted, setMounted]       = useState(false);
 
-  const links = [
-    { name: "Dashboard", path: "/", icon: <FaTachometerAlt /> },
-    { name: "Clientes", path: "/clients", icon: <FaUsers /> },
-    { name: "Produtos", path: "/products", icon: <FaBoxOpen /> },
-    { name: "Pedidos", path: "/orders", icon: <FaShoppingCart /> },
-    { name: "Usuários", path: "/users", icon: <FaUserShield /> },
-  ];
+  // Propaga a largura atual como CSS variable no <html>
+  // O .app-main-layout usa margin-left: var(--sb-width) para acompanhar
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--sb-width",
+      `${collapsed ? SB_SLIM : SB_FULL}px`
+    );
+  }, [collapsed]);
 
-  const handleCloseMobile = () => {
-    setMobileOpen(false);
-    setTimeout(() => setShowHamburger(true), 300);
-  };
+  useEffect(() => {
+    // Valor inicial
+    document.documentElement.style.setProperty("--sb-width", `${SB_FULL}px`);
+    const t = setTimeout(() => setMounted(true), 60);
+    return () => clearTimeout(t);
+  }, []);
 
-  const handleOpenMobile = () => {
-    setMobileOpen(true);
-    setShowHamburger(false);
-  };
+  // Fecha mobile ao navegar
+  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
 
   const handleLogout = () => {
-    if (window.confirm("Deseja sair do sistema?")) {
-      logout();
-    }
+    if (window.confirm("Deseja sair do sistema?")) logout();
   };
 
-  // ── Conteúdo de navegação compartilhado ──────────────────────────────────
-  const NavContent = ({ onLinkClick }) => (
-    <>
-      <nav
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "var(--space-sm)",
-          marginTop: "var(--space-lg)",
-          paddingLeft: "var(--space-sm)",
-          paddingRight: "var(--space-sm)",
-          overflowY: "auto",
-          flex: 1,
-        }}
-      >
-        {links.map((link, index) => (
-          <NavLink
-            key={link.path}
-            to={link.path}
-            onClick={onLinkClick}
-            style={({ isActive }) => ({
-              display: "flex",
-              alignItems: "center",
-              gap: "var(--space-md)",
-              padding: "var(--space-md)",
-              borderRadius: "var(--radius-lg)",
-              textDecoration: "none",
-              color: isActive ? "var(--color-primary)" : "var(--color-text)",
-              cursor: "pointer",
-              transition: "all 300ms ease",
-              background: isActive ? "rgba(79, 110, 247, 0.15)" : "transparent",
-              border: isActive ? "1px solid rgba(79, 110, 247, 0.3)" : "1px solid transparent",
-              fontSize: "var(--text-sm)",
-              fontWeight: isActive ? 600 : 500,
-              fontFamily: "var(--font-body)",
-              transitionDelay: `${index * 50}ms`,
-            })}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(79, 110, 247, 0.1)";
-              e.currentTarget.style.transform = "translateX(4px)";
-            }}
-            onMouseLeave={(e) => {
-              const isActive = e.currentTarget.getAttribute("aria-current") === "page";
-              e.currentTarget.style.background = isActive ? "rgba(79, 110, 247, 0.15)" : "transparent";
-              e.currentTarget.style.transform = "translateX(0)";
-            }}
-          >
-            <span style={{ fontSize: "18px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {link.icon}
-            </span>
-            {!collapsed && <span style={{ whiteSpace: "nowrap" }}>{link.name}</span>}
-          </NavLink>
-        ))}
-      </nav>
-
-      {/* Rodapé: usuário + logout */}
-      <div
-        style={{
-          padding: "var(--space-md)",
-          borderTop: "1px solid var(--color-border)",
-          marginTop: "auto",
-        }}
-      >
-        {/* Info do usuário */}
-        {!collapsed && user && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "var(--space-md)",
-              padding: "var(--space-md)",
-              marginBottom: "var(--space-sm)",
-              borderRadius: "var(--radius-md)",
-              background: "rgba(255,255,255,0.03)",
-            }}
-          >
-            <div
-              style={{
-                width: "32px",
-                height: "32px",
-                borderRadius: "50%",
-                background: "var(--color-primary)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "13px",
-                fontWeight: 700,
-                color: "#fff",
-                flexShrink: 0,
-              }}
-            >
-              {user.email?.[0]?.toUpperCase() ?? "U"}
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <div
-                style={{
-                  fontSize: "var(--text-sm)",
-                  fontWeight: 600,
-                  color: "var(--color-text)",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  maxWidth: "140px",
-                }}
-              >
-                {user.email}
-              </div>
-              <div style={{ fontSize: "var(--text-xs)", color: "var(--color-textMuted)", textTransform: "capitalize" }}>
-                {user.role}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Botão logout */}
-        <button
-          onClick={handleLogout}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "var(--space-md)",
-            width: "100%",
-            padding: "var(--space-md)",
-            borderRadius: "var(--radius-md)",
-            background: "transparent",
-            border: "1px solid transparent",
-            color: "rgba(239, 68, 68, 0.7)",
-            cursor: "pointer",
-            fontSize: "var(--text-sm)",
-            fontWeight: 500,
-            fontFamily: "var(--font-body)",
-            transition: "all 200ms ease",
-            justifyContent: collapsed ? "center" : "flex-start",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(239, 68, 68, 0.08)";
-            e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.2)";
-            e.currentTarget.style.color = "#ef4444";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.borderColor = "transparent";
-            e.currentTarget.style.color = "rgba(239, 68, 68, 0.7)";
-          }}
-          title={collapsed ? "Sair" : undefined}
-        >
-          <span style={{ fontSize: "16px", display: "flex", alignItems: "center" }}>
-            <FaSignOutAlt />
-          </span>
-          {!collapsed && <span>Sair</span>}
-        </button>
-      </div>
-    </>
-  );
+  const handleToggle = () => setCollapsed(c => !c);
 
   return (
     <>
-      {/* Botão Hamburger Mobile */}
-      {showHamburger && !mobileOpen && (
-        <button
-          className="fixed top-4 left-4 z-50 md:hidden p-2 rounded focus:outline-none shadow transition-transform duration-300 hover:scale-110"
-          style={{
-            background: "var(--color-surface2)",
-            color: "var(--color-text)",
-            border: "1px solid var(--color-border)",
-          }}
-          onClick={handleOpenMobile}
-        >
-          <FaBars size={20} />
+      <style>{`
+        @keyframes sbIn {
+          from { opacity:0; transform:translateX(-8px); }
+          to   { opacity:1; transform:translateX(0); }
+        }
+        /* Tooltip: aparece ao hover no pai */
+        .sb-has-tooltip:hover .sb-tooltip { opacity:1 !important; }
+
+        /* Desktop */
+        .sb-desktop {
+          position:fixed; left:0; top:0; height:100vh; z-index:20;
+          display:flex; flex-direction:column;
+          background:#13131A;
+          border-right:1px solid rgba(255,255,255,0.06);
+          overflow:hidden;
+          transition:width 260ms cubic-bezier(0.4,0,0.2,1);
+        }
+        @media (max-width:768px) { .sb-desktop { display:none !important; } }
+
+        /* Hamburger mobile */
+        .sb-ham {
+          position:fixed; top:14px; left:14px; z-index:50;
+          width:36px; height:36px; border-radius:9px;
+          border:1px solid rgba(255,255,255,0.1);
+          background:#13131A; color:rgba(240,240,248,0.65);
+          display:none; align-items:center; justify-content:center;
+          cursor:pointer; transition:background 150ms, color 150ms;
+        }
+        .sb-ham:hover { background:#1A1A24; color:#F0F0F8; }
+        @media (max-width:768px) { .sb-ham { display:flex; } }
+
+        /* Mobile panel */
+        .sb-mobile-panel {
+          position:fixed; top:0; left:0; height:100%; width:240px; z-index:40;
+          background:#13131A;
+          border-right:1px solid rgba(255,255,255,0.06);
+          display:flex; flex-direction:column;
+          transition:transform 280ms cubic-bezier(0.4,0,0.2,1);
+        }
+        .sb-overlay {
+          position:fixed; inset:0; z-index:30;
+          background:rgba(0,0,0,0.55);
+          backdrop-filter:blur(3px);
+        }
+
+        /* FIX BUG 2 — conteúdo acompanha a largura da sidebar */
+        .app-main-layout {
+          margin-left: var(--sb-width, 240px) !important;
+          transition: margin-left 260ms cubic-bezier(0.4,0,0.2,1);
+        }
+        @media (max-width:768px) {
+          .app-main-layout { margin-left: 0 !important; }
+        }
+      `}</style>
+
+      {/* Hamburger mobile (só aparece quando o painel está fechado) */}
+      {!mobileOpen && (
+        <button className="sb-ham" onClick={() => setMobileOpen(true)} aria-label="Abrir menu">
+          <Icon d={ICONS.menu} size={18} />
         </button>
       )}
 
-      {/* Sidebar Desktop */}
+      {/* Overlay + painel mobile */}
+      {mobileOpen && (
+        <>
+          <div className="sb-overlay" onClick={() => setMobileOpen(false)} />
+          <div className="sb-mobile-panel">
+            <SidebarInner
+              user={user}
+              collapsed={false}
+              isMobile
+              mounted={mounted}
+              onToggle={() => setMobileOpen(false)}
+              onLogout={handleLogout}
+            />
+          </div>
+        </>
+      )}
+
+      {/* Sidebar desktop */}
       <aside
-        style={{
-          position: "fixed",
-          left: 0,
-          top: 0,
-          height: "100vh",
-          zIndex: 20,
-          flexShrink: 0,
-          background: "linear-gradient(180deg, var(--color-surface2) 0%, var(--color-surface) 100%)",
-          color: "var(--color-text)",
-          display: "flex",
-          flexDirection: "column",
-          width: collapsed ? "80px" : "256px",
-          transition: "width 300ms ease",
-          borderRight: "1px solid var(--color-border)",
-          backdropFilter: "blur(10px)",
-        }}
-        className="sidebar-desktop"
+        className="sb-desktop sidebar-desktop"
+        style={{ width: collapsed ? SB_SLIM : SB_FULL }}
+        aria-label="Navegação principal"
       >
-        {/* Header */}
-        <div
+        <SidebarInner
+          user={user}
+          collapsed={collapsed}
+          isMobile={false}
+          mounted={mounted}
+          onToggle={handleToggle}
+          onLogout={handleLogout}
+        />
+      </aside>
+    </>
+  );
+};
+
+// ─── Conteúdo interno ─────────────────────────────────────────────────────────
+const SidebarInner = ({ user, collapsed, isMobile, mounted, onToggle, onLogout }) => {
+  const location  = useLocation();
+  const show      = !collapsed || isMobile;   // texto e labels visíveis?
+  const initials  = user?.email?.[0]?.toUpperCase() ?? "U";
+
+  return (
+    <>
+      {/* ── Header ── */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 10,
+        padding: "0 12px", minHeight: 64, flexShrink: 0,
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+      }}>
+        {/* Logo mark — sempre visível, é ele que serve de âncora no modo slim */}
+        <div style={{
+          width: 32, height: 32, borderRadius: 9, flexShrink: 0,
+          background: "linear-gradient(135deg,#7C6AF7,#5B4DD4)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 13, fontWeight: 800, color: "#fff",
+          boxShadow: "0 4px 12px rgba(124,106,247,0.3)",
+          fontFamily: "'Space Grotesk',sans-serif",
+        }}>M</div>
+
+        {/* Nome — some com transição */}
+        <span style={{
+          fontSize: 15, fontWeight: 700, color: "#F0F0F8",
+          letterSpacing: "-0.4px", whiteSpace: "nowrap", overflow: "hidden",
+          fontFamily: "'Space Grotesk',sans-serif",
+          maxWidth: show ? 140 : 0,
+          opacity: show ? 1 : 0,
+          transition: "max-width 260ms ease, opacity 180ms ease",
+        }}>
+          ManageSaaS
+        </span>
+
+        {/* Botão toggle — SEMPRE visível e clicável (FIX BUG 1) */}
+        <button
+          onClick={onToggle}
+          aria-label={isMobile ? "Fechar menu" : collapsed ? "Expandir sidebar" : "Colapsar sidebar"}
+          title={isMobile ? "Fechar" : collapsed ? "Expandir" : "Colapsar"}
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "var(--space-lg)",
-            borderBottom: "1px solid var(--color-border)",
-            background: "rgba(0, 0, 0, 0.2)",
-            flexShrink: 0,
+            marginLeft: "auto", flexShrink: 0,
+            width: 30, height: 30, borderRadius: 8,
+            border: "1px solid rgba(255,255,255,0.08)",
+            background: "rgba(255,255,255,0.03)",
+            color: "rgba(240,240,248,0.4)", cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            transition: "background 150ms, color 150ms, border-color 150ms",
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = "rgba(124,106,247,0.15)";
+            e.currentTarget.style.borderColor = "rgba(124,106,247,0.3)";
+            e.currentTarget.style.color = "#7C6AF7";
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+            e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+            e.currentTarget.style.color = "rgba(240,240,248,0.4)";
           }}
         >
-          {!collapsed && (
-            <h2
+          {isMobile ? (
+            <Icon d={ICONS.close} size={14} />
+          ) : (
+            /* Aponta para a direita quando colapsado (expandir), para esquerda quando expandido (colapsar) */
+            <Icon d={collapsed ? ICONS.chevronR : ICONS.chevronL} size={14} />
+          )}
+        </button>
+      </div>
+
+      {/* ── Nav ── */}
+      <nav style={{ flex: 1, padding: "10px 8px", overflowY: "auto", overflowX: "hidden" }}>
+        {show && (
+          <div style={{
+            fontSize: 10, fontWeight: 600,
+            color: "rgba(240,240,248,0.2)",
+            textTransform: "uppercase", letterSpacing: "1px",
+            padding: "4px 8px 8px",
+          }}>
+            Menu
+          </div>
+        )}
+
+        {LINKS.map((link, i) => {
+          const isActive =
+            link.path === "/dashboard"
+              ? location.pathname === "/" || location.pathname === "/dashboard"
+              : location.pathname.startsWith(link.path);
+
+          return (
+            <NavLink
+              key={link.path}
+              to={link.path}
+              aria-current={isActive ? "page" : undefined}
+              className="sb-has-tooltip"
               style={{
-                fontSize: "var(--text-2xl)",
-                fontWeight: 700,
-                margin: 0,
-                fontFamily: "var(--font-display)",
-                letterSpacing: "-0.5px",
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "9px 10px", borderRadius: 9,
+                textDecoration: "none", marginBottom: 2,
+                color: isActive ? "#7C6AF7" : "rgba(240,240,248,0.45)",
+                fontFamily: "'Space Grotesk',sans-serif",
+                fontSize: 13, fontWeight: isActive ? 600 : 500,
+                background: isActive ? "rgba(124,106,247,0.14)" : "transparent",
+                borderLeft: isActive ? "3px solid #7C6AF7" : "3px solid transparent",
+                position: "relative", whiteSpace: "nowrap",
+                transition: "background 150ms, color 150ms, transform 150ms",
+                animation: mounted
+                  ? `sbIn .35s cubic-bezier(0.22,1,0.36,1) ${i * 45}ms both`
+                  : "none",
+              }}
+              onMouseEnter={e => {
+                if (!isActive) {
+                  e.currentTarget.style.background = "rgba(124,106,247,0.07)";
+                  e.currentTarget.style.color = "rgba(240,240,248,0.8)";
+                  e.currentTarget.style.transform = "translateX(2px)";
+                }
+              }}
+              onMouseLeave={e => {
+                if (!isActive) {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = "rgba(240,240,248,0.45)";
+                  e.currentTarget.style.transform = "translateX(0)";
+                }
               }}
             >
-              Painel
-            </h2>
-          )}
-          <button
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--color-text)",
-              cursor: "pointer",
-              padding: "var(--space-sm)",
-              fontSize: "18px",
-              borderRadius: "var(--radius-md)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              transition: "color 200ms ease",
-            }}
-            onClick={() => setCollapsed(!collapsed)}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-primary)")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-text)")}
-          >
-            <FaBars size={18} style={{ transform: collapsed ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 300ms ease" }} />
-          </button>
+              <div style={{ width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Icon d={ICONS[link.icon]} size={17} />
+              </div>
+
+              <span style={{
+                overflow: "hidden",
+                maxWidth: show ? 150 : 0,
+                opacity: show ? 1 : 0,
+                transition: "max-width 260ms ease, opacity 180ms ease",
+              }}>
+                {link.name}
+              </span>
+
+              {/* Tooltip no modo slim (desktop colapsado) */}
+              {!isMobile && collapsed && (
+                <span
+                  className="sb-tooltip"
+                  style={{
+                    position: "absolute", left: "calc(100% + 10px)", top: "50%",
+                    transform: "translateY(-50%)", zIndex: 200,
+                    background: "#1E1E2E", border: "1px solid rgba(255,255,255,0.12)",
+                    borderRadius: 7, padding: "5px 11px",
+                    fontSize: 12, fontWeight: 600, color: "#F0F0F8",
+                    whiteSpace: "nowrap", pointerEvents: "none",
+                    opacity: 0, transition: "opacity 150ms",
+                    boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
+                  }}
+                >
+                  {link.name}
+                </span>
+              )}
+            </NavLink>
+          );
+        })}
+      </nav>
+
+      {/* ── Footer ── */}
+      <div style={{
+        padding: "10px 8px",
+        borderTop: "1px solid rgba(255,255,255,0.06)",
+        flexShrink: 0,
+      }}>
+        {/* Info usuário */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 10,
+          padding: "8px 10px", borderRadius: 9, marginBottom: 2, overflow: "hidden",
+        }}>
+          <div style={{
+            width: 30, height: 30, borderRadius: 8, flexShrink: 0,
+            background: "rgba(124,106,247,0.18)",
+            border: "1px solid rgba(124,106,247,0.28)",
+            color: "#7C6AF7", fontSize: 12, fontWeight: 700,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontFamily: "'Space Grotesk',sans-serif",
+          }}>
+            {initials}
+          </div>
+          <div style={{
+            minWidth: 0, overflow: "hidden",
+            maxWidth: show ? 148 : 0,
+            opacity: show ? 1 : 0,
+            transition: "max-width 260ms ease, opacity 180ms ease",
+          }}>
+            <div style={{
+              fontSize: 12, fontWeight: 600, color: "#F0F0F8",
+              whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+              fontFamily: "'Space Grotesk',sans-serif",
+            }}>
+              {user?.email ?? "—"}
+            </div>
+            <div style={{ fontSize: 10, color: "rgba(240,240,248,0.3)", textTransform: "capitalize" }}>
+              {user?.role ?? "—"}
+            </div>
+          </div>
         </div>
 
-        <NavContent onLinkClick={undefined} />
-      </aside>
-
-      {/* Sidebar Mobile */}
-      <aside
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          height: "100%",
-          background: "linear-gradient(180deg, var(--color-surface2) 0%, var(--color-surface) 100%)",
-          color: "var(--color-text)",
-          zIndex: 40,
-          width: "256px",
-          transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
-          transition: "transform 300ms ease-in-out",
-          display: "flex",
-          flexDirection: "column",
-          borderRight: "1px solid var(--color-border)",
-        }}
-      >
-        {/* Header Mobile */}
-        <div
+        {/* Botão logout */}
+        <button
+          onClick={onLogout}
+          className="sb-has-tooltip"
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "var(--space-lg)",
-            borderBottom: "1px solid var(--color-border)",
-            background: "rgba(0, 0, 0, 0.2)",
-            flexShrink: 0,
+            display: "flex", alignItems: "center", gap: 10,
+            padding: "9px 10px", borderRadius: 9,
+            border: "none", background: "transparent", width: "100%",
+            color: "rgba(247,100,100,0.5)",
+            fontSize: 13, fontWeight: 500, fontFamily: "'Space Grotesk',sans-serif",
+            cursor: "pointer", textAlign: "left", whiteSpace: "nowrap",
+            transition: "background 150ms, color 150ms",
+            position: "relative",
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = "rgba(247,100,100,0.08)";
+            e.currentTarget.style.color = "#F76464";
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = "transparent";
+            e.currentTarget.style.color = "rgba(247,100,100,0.5)";
           }}
         >
-          <h2
-            style={{
-              fontSize: "var(--text-2xl)",
-              fontWeight: 700,
-              margin: 0,
-              fontFamily: "var(--font-display)",
-              letterSpacing: "-0.5px",
-            }}
-          >
-            Painel
-          </h2>
-          <button
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--color-text)",
-              cursor: "pointer",
-              padding: "var(--space-sm)",
-              fontSize: "18px",
-              borderRadius: "var(--radius-md)",
-              display: "flex",
-              alignItems: "center",
-              transition: "color 200ms ease",
-            }}
-            onClick={handleCloseMobile}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-primary)")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-text)")}
-          >
-            <FaBars size={18} />
-          </button>
-        </div>
-
-        <NavContent onLinkClick={handleCloseMobile} />
-      </aside>
-
-      {/* Overlay Mobile */}
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(0, 0, 0, 0.4)",
-          zIndex: 30,
-          opacity: mobileOpen ? 1 : 0,
-          pointerEvents: mobileOpen ? "auto" : "none",
-          transition: "opacity 300ms ease",
-        }}
-        className="md:hidden"
-        onClick={handleCloseMobile}
-      />
+          <div style={{ width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon d={ICONS.logout} size={17} />
+          </div>
+          <span style={{
+            maxWidth: show ? 150 : 0, opacity: show ? 1 : 0, overflow: "hidden",
+            transition: "max-width 260ms ease, opacity 180ms ease",
+          }}>
+            Sair
+          </span>
+          {!isMobile && collapsed && (
+            <span
+              className="sb-tooltip"
+              style={{
+                position: "absolute", left: "calc(100% + 10px)", top: "50%",
+                transform: "translateY(-50%)", zIndex: 200,
+                background: "#1E1E2E", border: "1px solid rgba(255,255,255,0.12)",
+                borderRadius: 7, padding: "5px 11px",
+                fontSize: 12, fontWeight: 600, color: "#F76464",
+                whiteSpace: "nowrap", pointerEvents: "none",
+                opacity: 0, transition: "opacity 150ms",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
+              }}
+            >
+              Sair
+            </span>
+          )}
+        </button>
+      </div>
     </>
   );
 };

@@ -187,7 +187,7 @@ body { line-height: 1.6; -webkit-font-smoothing: antialiased; }
 
 .app-main-layout {
   flex: 1; min-height: 100vh;
-  margin-left: 256px;
+  margin-left: 240px;
   transition: margin-left .3s ease;
 }
 @media (max-width: 768px) { .app-main-layout { margin-left: 0; } }
