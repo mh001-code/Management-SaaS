@@ -3,12 +3,12 @@ import { Routes, Route, Outlet } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import PrivateRoute from "./components/PrivateRoute";
 import Login from "./pages/Login";
+import ToastContainer from "./components/ToastContainer";
 
 import "./theme/theme.css";
 import "./styles/globals.css";
 import "./index.css";
 
-// Lazy load das páginas para code-splitting
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Clients = lazy(() => import("./pages/Clients"));
 const Products = lazy(() => import("./pages/Products"));
@@ -34,7 +34,6 @@ const PageLoader = () => (
   </div>
 );
 
-// ✅ Suspense único aqui — removidos os Suspense individuais por rota
 const PrivateLayout = () => (
   <main className="app-main-layout">
     <Suspense fallback={<PageLoader />}>
@@ -45,30 +44,33 @@ const PrivateLayout = () => (
 
 const App = () => {
   return (
-    <Routes>
-      {/* Rota pública */}
-      <Route path="/login" element={<Login />} />
+    <>
+      <Routes>
+        <Route path="/login" element={<Login />} />
 
-      {/* Rotas protegidas */}
-      <Route
-        path="/"
-        element={
-          <PrivateRoute>
-            <>
-              <Sidebar />
-              <PrivateLayout />
-            </>
-          </PrivateRoute>
-        }
-      >
-        <Route index element={<Dashboard />} />
-        <Route path="dashboard" element={<Dashboard />} />
-        <Route path="clients" element={<Clients />} />
-        <Route path="products" element={<Products />} />
-        <Route path="orders" element={<Orders />} />
-        <Route path="users" element={<Users />} />
-      </Route>
-    </Routes>
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <>
+                <Sidebar />
+                <PrivateLayout />
+              </>
+            </PrivateRoute>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="clients" element={<Clients />} />
+          <Route path="products" element={<Products />} />
+          <Route path="orders" element={<Orders />} />
+          <Route path="users" element={<Users />} />
+        </Route>
+      </Routes>
+
+      {/* ToastContainer fora do Routes para funcionar em qualquer rota */}
+      <ToastContainer />
+    </>
   );
 };
 

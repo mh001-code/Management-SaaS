@@ -8,6 +8,7 @@
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "lint": "eslint .",
+    "migrate": "node scripts/migrate.js",
     "create-admin": "node createAdmin.js"
   },
   "keywords": ["node", "express", "postgresql", "api", "saas"],
