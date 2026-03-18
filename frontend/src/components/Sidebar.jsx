@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import NotificationBell from "./NotificationBell";
 
 const Icon = ({ d, size = 17 }) => (
   <svg width={size} height={size} viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0 }}>
@@ -87,7 +88,6 @@ const Sidebar = () => {
           display:flex; flex-direction:column;
           background:#13131A;
           border-right:1px solid rgba(255,255,255,0.06);
-          overflow:hidden;
           transition:width 260ms cubic-bezier(0.4,0,0.2,1);
         }
         @media (max-width:768px) { .sb-desktop { display:none !important; } }
@@ -155,7 +155,7 @@ const Sidebar = () => {
       {/* Sidebar desktop */}
       <aside
         className="sb-desktop sidebar-desktop"
-        style={{ width: collapsed ? SB_SLIM : SB_FULL }}
+        style={{ width: collapsed ? SB_SLIM : SB_FULL, overflow: "visible" }}
         aria-label="Navegação principal"
       >
         <SidebarInner
@@ -166,6 +166,37 @@ const Sidebar = () => {
           onToggle={handleToggle}
           onLogout={handleLogout}
         />
+
+        {/* Botão toggle posicionado fora do overflow — sempre 100% visível */}
+        <button
+          onClick={handleToggle}
+          aria-label={collapsed ? "Expandir sidebar" : "Colapsar sidebar"}
+          title={collapsed ? "Expandir" : "Colapsar"}
+          style={{
+            position: "absolute", top: 18, right: -14,
+            width: 28, height: 28, borderRadius: "50%",
+            border: "1px solid rgba(255,255,255,0.12)",
+            background: "#1A1A26",
+            color: "rgba(240,240,248,0.5)",
+            cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+            transition: "background 150ms, color 150ms, border-color 150ms",
+            zIndex: 30,
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = "rgba(124,106,247,0.2)";
+            e.currentTarget.style.borderColor = "rgba(124,106,247,0.4)";
+            e.currentTarget.style.color = "#7C6AF7";
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = "#1A1A26";
+            e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)";
+            e.currentTarget.style.color = "rgba(240,240,248,0.5)";
+          }}
+        >
+          <Icon d={collapsed ? ICONS.chevronR : ICONS.chevronL} size={13} />
+        </button>
       </aside>
     </>
   );
@@ -178,7 +209,7 @@ const SidebarInner = ({ user, collapsed, isMobile, mounted, onToggle, onLogout }
   const initials  = user?.email?.[0]?.toUpperCase() ?? "U";
 
   return (
-    <>
+    <div style={{ overflow: "hidden", display: "flex", flexDirection: "column", height: "100%" }}>
       {/* ── Header ── */}
       <div style={{
         display: "flex", alignItems: "center", gap: 10,
@@ -207,38 +238,35 @@ const SidebarInner = ({ user, collapsed, isMobile, mounted, onToggle, onLogout }
           ManageSaaS
         </span>
 
-        {/* Botão toggle — SEMPRE visível e clicável (FIX BUG 1) */}
-        <button
-          onClick={onToggle}
-          aria-label={isMobile ? "Fechar menu" : collapsed ? "Expandir sidebar" : "Colapsar sidebar"}
-          title={isMobile ? "Fechar" : collapsed ? "Expandir" : "Colapsar"}
-          style={{
-            marginLeft: "auto", flexShrink: 0,
-            width: 30, height: 30, borderRadius: 8,
-            border: "1px solid rgba(255,255,255,0.08)",
-            background: "rgba(255,255,255,0.03)",
-            color: "rgba(240,240,248,0.4)", cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            transition: "background 150ms, color 150ms, border-color 150ms",
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = "rgba(124,106,247,0.15)";
-            e.currentTarget.style.borderColor = "rgba(124,106,247,0.3)";
-            e.currentTarget.style.color = "#7C6AF7";
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = "rgba(255,255,255,0.03)";
-            e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-            e.currentTarget.style.color = "rgba(240,240,248,0.4)";
-          }}
-        >
-          {isMobile ? (
+        {/* Botão fechar — só no painel mobile */}
+        {isMobile && (
+          <button
+            onClick={onToggle}
+            aria-label="Fechar menu"
+            title="Fechar"
+            style={{
+              marginLeft: "auto", flexShrink: 0,
+              width: 30, height: 30, borderRadius: 8,
+              border: "1px solid rgba(255,255,255,0.08)",
+              background: "rgba(255,255,255,0.03)",
+              color: "rgba(240,240,248,0.4)", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              transition: "background 150ms, color 150ms, border-color 150ms",
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = "rgba(124,106,247,0.15)";
+              e.currentTarget.style.borderColor = "rgba(124,106,247,0.3)";
+              e.currentTarget.style.color = "#7C6AF7";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+              e.currentTarget.style.color = "rgba(240,240,248,0.4)";
+            }}
+          >
             <Icon d={ICONS.close} size={14} />
-          ) : (
-            /* Aponta para a direita quando colapsado (expandir), para esquerda quando expandido (colapsar) */
-            <Icon d={collapsed ? ICONS.chevronR : ICONS.chevronL} size={14} />
-          )}
-        </button>
+          </button>
+        )}
       </div>
 
       {/* ── Nav ── */}
@@ -372,6 +400,9 @@ const SidebarInner = ({ user, collapsed, isMobile, mounted, onToggle, onLogout }
           </div>
         </div>
 
+        {/* Notificações */}
+        <NotificationBell collapsed={collapsed && !isMobile} />
+
         {/* Botão logout */}
         <button
           onClick={onLogout}
@@ -423,7 +454,7 @@ const SidebarInner = ({ user, collapsed, isMobile, mounted, onToggle, onLogout }
           )}
         </button>
       </div>
-    </>
+    </div>
   );
 };
 
