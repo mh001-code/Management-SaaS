@@ -65,7 +65,8 @@ const TransactionsTab = ({ categories }) => {
     return `/financial?${p.toString()}`;
   };
 
-  const { data: transactions, loading, refetch } = useFetch(buildUrl(), true, 0);
+  const transactionUrl = buildUrl();
+  const { data: transactions, loading, refetch } = useFetch(transactionUrl, true, 0);
 
   const { paginatedItems, currentPage, goToPage, totalPages } =
     usePagination(transactions || [], 12);
