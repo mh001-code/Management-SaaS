@@ -19,20 +19,6 @@ BEGIN
     created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW()
   );
 
-  -- Categorias padrão
-  INSERT INTO transaction_categories (name, type) VALUES
-    ('Venda de produto',   'receita'),
-    ('Serviço prestado',   'receita'),
-    ('Outros (receita)',   'receita'),
-    ('Fornecedor',         'despesa'),
-    ('Aluguel',            'despesa'),
-    ('Salários',           'despesa'),
-    ('Marketing',          'despesa'),
-    ('Logística',          'despesa'),
-    ('Impostos',           'despesa'),
-    ('Manutenção',         'despesa'),
-    ('Outros (despesa)',   'despesa');
-
   -- ── Lançamentos financeiros ──────────────────────────────────────────────
   CREATE TABLE IF NOT EXISTS transactions (
     id            SERIAL PRIMARY KEY,
@@ -63,5 +49,25 @@ BEGIN
   RAISE NOTICE 'Migration 004_financial applied successfully.';
 END;
 $$ LANGUAGE plpgsql;
+
+-- GRANTs FORA do bloco DO $$ — rodam sempre, independente do IF acima
+-- Isso garante que mesmo re-executando a migration, as permissões são aplicadas
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO saas_user;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO saas_user;
+
+-- Categorias padrão — separadas do bloco para não falhar se já existirem
+INSERT INTO transaction_categories (name, type) VALUES
+  ('Venda de produto',   'receita'),
+  ('Serviço prestado',   'receita'),
+  ('Outros (receita)',   'receita'),
+  ('Fornecedor',         'despesa'),
+  ('Aluguel',            'despesa'),
+  ('Salários',           'despesa'),
+  ('Marketing',          'despesa'),
+  ('Logística',          'despesa'),
+  ('Impostos',           'despesa'),
+  ('Manutenção',         'despesa'),
+  ('Outros (despesa)',   'despesa')
+ON CONFLICT (name) DO NOTHING;
 
 COMMIT;

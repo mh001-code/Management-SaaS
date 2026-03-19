@@ -10,7 +10,8 @@ const router = Router();
 router.get("/",           getPurchaseOrders);
 router.get("/:id",        getPurchaseOrderById);
 router.post("/",          createPurchaseOrder);
-router.put("/:id/status", updatePurchaseOrderStatus);
+router.put("/:id/status",   updatePurchaseOrderStatus);
+router.patch("/:id/status", updatePurchaseOrderStatus);
 router.delete("/:id",     deletePurchaseOrder);
 
 export default router;

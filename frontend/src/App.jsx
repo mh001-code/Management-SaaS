@@ -16,7 +16,8 @@ const Orders    = lazy(() => import("./pages/Orders"));
 const Users     = lazy(() => import("./pages/Users"));
 const Reports  = lazy(() => import('./pages/Reports'));
 const Financial = lazy(() => import('./pages/Financial'));
-const Suppliers = lazy(() => import("./pages/Suppliers"));
+const Suppliers      = lazy(() => import("./pages/Suppliers"));
+const PurchaseOrders = lazy(() => import("./pages/PurchaseOrders"));
 
 const PageLoader = () => (
   <div style={{
@@ -64,7 +65,8 @@ const App = () => (
         <Route path="/users"      element={<Users />} />
         <Route path="/reports"    element={<Reports />} />
           <Route path="/financial"  element={<Financial />} />
-          <Route path="/suppliers"  element={<Suppliers />} />
+          <Route path="/suppliers"       element={<Suppliers />} />
+          <Route path="/purchase-orders" element={<PurchaseOrders />} />
       </Route>
 
       {/* Fallback */}

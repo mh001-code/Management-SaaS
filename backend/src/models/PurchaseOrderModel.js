@@ -87,6 +87,17 @@ export const deletePurchaseOrder = async (id) => {
 export const receivePurchaseOrder = async (orderId) => {
   const client = await beginTransaction();
   try {
+    // 1. Busca dados da ordem + fornecedor para o lançamento
+    const orderRes = await client.query(
+      `SELECT po.total, po.supplier_id, po.notes, s.name AS supplier_name
+       FROM purchase_orders po
+       JOIN suppliers s ON s.id = po.supplier_id
+       WHERE po.id = $1`,
+      [orderId]
+    );
+    const order = orderRes.rows[0];
+
+    // 2. Incrementa estoque de cada item
     const itemsRes = await client.query(
       `SELECT product_id, quantity FROM purchase_order_items
        WHERE purchase_order_id = $1`,
@@ -100,10 +111,41 @@ export const receivePurchaseOrder = async (orderId) => {
         [item.quantity, item.product_id]
       );
     }
+
+    // 3. Marca a ordem como recebida
     await client.query(
       `UPDATE purchase_orders SET status = 'recebido', updated_at = NOW() WHERE id = $1`,
       [orderId]
     );
+
+    // 4. Cria lançamento de despesa no financeiro (se ainda não existir)
+    const alreadyExists = await client.query(
+      `SELECT id FROM transactions WHERE description = $1 LIMIT 1`,
+      [`Compra #${orderId} — ${order.supplier_name}`]
+    );
+
+    if (alreadyExists.rows.length === 0) {
+      // Busca categoria "Fornecedor" (criada pela migration 004)
+      const catRes = await client.query(
+        `SELECT id FROM transaction_categories WHERE name = 'Fornecedor' LIMIT 1`
+      );
+      const categoryId = catRes.rows[0]?.id ?? null;
+
+      await client.query(
+        `INSERT INTO transactions
+           (type, description, amount, due_date, status, category_id, supplier_id, notes)
+         VALUES
+           ('despesa', $1, $2, CURRENT_DATE, 'pendente', $3, $4, $5)`,
+        [
+          `Compra #${orderId} — ${order.supplier_name}`,
+          order.total,
+          categoryId,
+          order.supplier_id,
+          order.notes || null,
+        ]
+      );
+    }
+
     await commitTransaction(client);
   } catch (err) {
     await rollbackTransaction(client);
