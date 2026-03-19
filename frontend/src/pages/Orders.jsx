@@ -61,20 +61,20 @@ const OrderDrawer = ({ order, onClose }) => {
       <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.45)" }} onClick={onClose} />
       <div style={{
         position: "fixed", top: 0, right: 0, bottom: 0, zIndex: 901,
-        width: 380, background: "#13131A",
-        borderLeft: "1px solid rgba(255,255,255,0.08)",
+        width: 380, background: "var(--color-surface)",
+        borderLeft: "1px solid var(--color-border)",
         boxShadow: "-16px 0 48px rgba(0,0,0,0.5)",
         display: "flex", flexDirection: "column",
         animation: "drawerIn 240ms cubic-bezier(0.22,1,0.36,1)",
       }}>
         <style>{`@keyframes drawerIn { from { transform: translateX(100%); } to { transform: translateX(0); } }`}</style>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
-          padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
+          padding: "20px 24px", borderBottom: "1px solid var(--color-border)", flexShrink: 0 }}>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "#F0F0F8", marginBottom: 4 }}>Pedido #{order.id}</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>Pedido #{order.id}</div>
             <StatusBadge status={order.status} />
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "#7A7A9A", cursor: "pointer", fontSize: 22, lineHeight: 1, padding: 4 }}>×</button>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--color-textMuted)", cursor: "pointer", fontSize: 22, lineHeight: 1, padding: 4 }}>×</button>
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: 24 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 24 }}>
@@ -84,21 +84,21 @@ const OrderDrawer = ({ order, onClose }) => {
               { label: "Data",    value: order.created_at ? new Date(order.created_at).toLocaleDateString("pt-BR") : "—" },
               { label: "Itens",   value: `${order.items?.length ?? "—"} produto(s)` },
             ].map(({ label, value }) => (
-              <div key={label} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 9,
-                padding: "10px 14px", border: "1px solid rgba(255,255,255,0.05)" }}>
-                <div style={{ fontSize: 10, color: "#7A7A9A", fontWeight: 600,
+              <div key={label} style={{ background: "rgba(0,0,0,0.02)", borderRadius: 9,
+                padding: "10px 14px", border: "1px solid var(--color-border)" }}>
+                <div style={{ fontSize: 10, color: "var(--color-textMuted)", fontWeight: 600,
                   textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 4 }}>{label}</div>
-                <div style={{ fontSize: 13, color: "#F0F0F8", fontWeight: 500 }}>{value}</div>
+                <div style={{ fontSize: 13, color: "var(--color-text)", fontWeight: 500 }}>{value}</div>
               </div>
             ))}
           </div>
 
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: "#7A7A9A",
+            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--color-textMuted)",
               textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 14 }}>Histórico de status</div>
             <div style={{ position: "relative", paddingLeft: 20 }}>
               <div style={{ position: "absolute", left: 7, top: 8, width: 1,
-                height: "calc(100% - 16px)", background: "rgba(255,255,255,0.08)" }} />
+                height: "calc(100% - 16px)", background: "var(--color-border2)" }} />
               {steps.map((step, i) => {
                 const isDone    = history.includes(step);
                 const isCurrent = step === order.status;
@@ -107,7 +107,7 @@ const OrderDrawer = ({ order, onClose }) => {
                   <div key={step} style={{ display: "flex", alignItems: "center", gap: 12,
                     marginBottom: i < steps.length - 1 ? 14 : 0, opacity: isDone ? 1 : 0.3 }}>
                     <div style={{ width: 14, height: 14, borderRadius: "50%", flexShrink: 0,
-                      background: isDone ? m.dot : "rgba(255,255,255,0.1)",
+                      background: isDone ? m.dot : "var(--color-border2)",
                       border: isCurrent ? `2px solid ${m.dot}` : "2px solid transparent",
                       boxShadow: isCurrent ? `0 0 8px ${m.dot}66` : "none",
                       position: "relative", zIndex: 1, marginLeft: -20,
@@ -130,16 +130,16 @@ const OrderDrawer = ({ order, onClose }) => {
 
           {order.items?.length > 0 && (
             <div style={{ marginTop: 24 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: "#7A7A9A",
+              <div style={{ fontSize: 11, fontWeight: 600, color: "var(--color-textMuted)",
                 textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 10 }}>Itens</div>
               {order.items.map((item, i) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between",
                   padding: "8px 12px", borderRadius: 8, marginBottom: 6,
-                  background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                  <span style={{ fontSize: 13, color: "#F0F0F8" }}>
+                  background: "rgba(0,0,0,0.02)", border: "1px solid var(--color-border)" }}>
+                  <span style={{ fontSize: 13, color: "var(--color-text)" }}>
                     {item.product_name ?? item.name ?? `Produto ${item.product_id}`}
                   </span>
-                  <span style={{ fontSize: 12, color: "#7A7A9A" }}>{item.quantity} un.</span>
+                  <span style={{ fontSize: 12, color: "var(--color-textMuted)" }}>{item.quantity} un.</span>
                 </div>
               ))}
             </div>
@@ -240,9 +240,9 @@ const Orders = () => {
             { label: "Pendentes",      value: kpis.pending,                 color: "#F7916A", mono: false },
             { label: "Cancelados",     value: kpis.cancelled,               color: "#F76464", mono: false },
           ].map(({ label, value, color, mono }) => (
-            <div key={label} style={{ background: "#13131A", border: "1px solid rgba(255,255,255,0.06)",
+            <div key={label} style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)",
               borderRadius: 12, padding: "14px 18px" }}>
-              <div style={{ fontSize: 10, fontWeight: 600, color: "#7A7A9A",
+              <div style={{ fontSize: 10, fontWeight: 600, color: "var(--color-textMuted)",
                 textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 6 }}>{label}</div>
               <div style={{ fontSize: mono ? 18 : 24, fontWeight: 700, color,
                 fontFamily: mono ? "var(--font-mono)" : "inherit" }}>{value}</div>
@@ -256,7 +256,7 @@ const Orders = () => {
               <div className="chart-title">{editingOrder ? "✎ Editar pedido" : "+ Novo pedido"}</div>
               {editingOrder && (
                 <button onClick={() => setEditingOrder(null)}
-                  style={{ background: "none", border: "none", color: "#7A7A9A", cursor: "pointer", fontSize: 13 }}>
+                  style={{ background: "none", border: "none", color: "var(--color-textMuted)", cursor: "pointer", fontSize: 13 }}>
                   Cancelar edição
                 </button>
               )}

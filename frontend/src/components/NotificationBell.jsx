@@ -105,8 +105,8 @@ export default function NotificationBell({ collapsed }) {
           left: collapsed ? 80 : 248,
           bottom: 60,
           width: 340,
-          background: "#13131A",
-          border: "1px solid rgba(255,255,255,0.1)",
+          background: "var(--color-surface)",
+          border: "1px solid var(--color-border2)",
           borderRadius: 14,
           boxShadow: "0 16px 48px rgba(0,0,0,0.6)",
           zIndex: 9999,
@@ -117,16 +117,16 @@ export default function NotificationBell({ collapsed }) {
 
           {/* Header do dropdown */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: "#F0F0F8" }}>Notificações</span>
+            padding: "14px 16px", borderBottom: "1px solid var(--color-border)" }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>Notificações</span>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               {lastUpdate && (
-                <span style={{ fontSize: 10, color: "#7A7A9A" }}>
+                <span style={{ fontSize: 10, color: "var(--color-textMuted)" }}>
                   {lastUpdate.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                 </span>
               )}
               <button onClick={refresh} title="Atualizar" style={{
-                background: "none", border: "none", color: "#7A7A9A",
+                background: "none", border: "none", color: "var(--color-textMuted)",
                 cursor: "pointer", fontSize: 14, padding: 2,
               }}>↻</button>
             </div>
@@ -135,16 +135,16 @@ export default function NotificationBell({ collapsed }) {
           {/* Conteúdo */}
           <div style={{ maxHeight: 420, overflowY: "auto" }}>
             {loading ? (
-              <div style={{ padding: 24, textAlign: "center", color: "#7A7A9A", fontSize: 13 }}>
+              <div style={{ padding: 24, textAlign: "center", color: "var(--color-textMuted)", fontSize: 13 }}>
                 Carregando...
               </div>
             ) : alerts.length === 0 ? (
               <div style={{ padding: 32, textAlign: "center" }}>
                 <div style={{ fontSize: 28, marginBottom: 8 }}>✅</div>
-                <div style={{ fontSize: 13, color: "#7A7A9A", fontWeight: 500 }}>
+                <div style={{ fontSize: 13, color: "var(--color-textMuted)", fontWeight: 500 }}>
                   Tudo em ordem!
                 </div>
-                <div style={{ fontSize: 11, color: "#7A7A9A", marginTop: 4 }}>
+                <div style={{ fontSize: 11, color: "var(--color-textMuted)", marginTop: 4 }}>
                   Nenhum alerta no momento
                 </div>
               </div>
@@ -154,11 +154,11 @@ export default function NotificationBell({ collapsed }) {
                 return (
                   <div key={alert.id} style={{
                     padding: "12px 16px",
-                    borderBottom: "1px solid rgba(255,255,255,0.05)",
+                    borderBottom: "1px solid var(--color-border)",
                     background: "transparent",
                     transition: "background 150ms",
                   }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}
+                    onMouseEnter={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.02)"}
                     onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                   >
                     {/* Cabeçalho do alerta */}
@@ -169,7 +169,7 @@ export default function NotificationBell({ collapsed }) {
                           {alert.title}
                         </div>
                         {alert.subtitle && (
-                          <div style={{ fontSize: 11, color: "#7A7A9A", marginTop: 2 }}>
+                          <div style={{ fontSize: 11, color: "var(--color-textMuted)", marginTop: 2 }}>
                             {alert.subtitle}
                           </div>
                         )}
@@ -186,7 +186,7 @@ export default function NotificationBell({ collapsed }) {
                       <div style={{ marginLeft: 24, marginBottom: 8 }}>
                         {alert.items.map((item, i) => (
                           <div key={i} style={{ display: "flex", alignItems: "center", gap: 6,
-                            fontSize: 11, color: "#7A7A9A", marginTop: 3 }}>
+                            fontSize: 11, color: "var(--color-textMuted)", marginTop: 3 }}>
                             <div style={{ width: 4, height: 4, borderRadius: "50%",
                               background: c.dot, flexShrink: 0 }} />
                             <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -195,7 +195,7 @@ export default function NotificationBell({ collapsed }) {
                           </div>
                         ))}
                         {alert.items.length === 5 && (
-                          <div style={{ fontSize: 10, color: "#7A7A9A", marginTop: 4, marginLeft: 10 }}>
+                          <div style={{ fontSize: 10, color: "var(--color-textMuted)", marginTop: 4, marginLeft: 10 }}>
                             e mais...
                           </div>
                         )}
@@ -219,9 +219,9 @@ export default function NotificationBell({ collapsed }) {
 
           {/* Footer */}
           {alerts.length > 0 && (
-            <div style={{ padding: "10px 16px", borderTop: "1px solid rgba(255,255,255,0.06)",
+            <div style={{ padding: "10px 16px", borderTop: "1px solid var(--color-border)",
               textAlign: "center" }}>
-              <span style={{ fontSize: 11, color: "#7A7A9A" }}>
+              <span style={{ fontSize: 11, color: "var(--color-textMuted)" }}>
                 Atualiza automaticamente a cada 5 minutos
               </span>
             </div>

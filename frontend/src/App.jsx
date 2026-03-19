@@ -4,6 +4,7 @@ import Sidebar from "./components/Sidebar";
 import PrivateRoute from "./components/PrivateRoute";
 import Login from "./pages/Login";
 import ToastContainer from "./components/ToastContainer";
+import { ThemeProvider } from "./contexts/ThemeContext";
 
 import "./theme/theme.css";
 import "./styles/globals.css";
@@ -51,7 +52,7 @@ const PrivateLayout = () => (
 );
 
 const App = () => (
-  <>
+  <ThemeProvider>
     <Routes>
       <Route path="/login" element={<Login />} />
 
@@ -64,9 +65,9 @@ const App = () => (
         <Route path="/orders"     element={<Orders />} />
         <Route path="/users"      element={<Users />} />
         <Route path="/reports"    element={<Reports />} />
-          <Route path="/financial"  element={<Financial />} />
-          <Route path="/suppliers"       element={<Suppliers />} />
-          <Route path="/purchase-orders" element={<PurchaseOrders />} />
+        <Route path="/financial"  element={<Financial />} />
+        <Route path="/suppliers"       element={<Suppliers />} />
+        <Route path="/purchase-orders" element={<PurchaseOrders />} />
       </Route>
 
       {/* Fallback */}
@@ -75,7 +76,7 @@ const App = () => (
 
     {/* ToastContainer fora do Routes para funcionar em qualquer rota */}
     <ToastContainer />
-  </>
+  </ThemeProvider>
 );
 
 export default App;

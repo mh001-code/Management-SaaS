@@ -54,7 +54,7 @@ const DonutChart = ({ data }) => {
     <svg viewBox="0 0 100 100" style={{ width: 80, height: 80, flexShrink: 0 }}>
       {slices.map((s, i) => <path key={i} d={s.path} fill="none" stroke={s.color} strokeWidth={sw} />)}
       <text x="50" y="50" textAnchor="middle" dominantBaseline="central"
-        style={{ fontSize: 12, fontWeight: 700, fill: "#F0F0F8", fontFamily: "monospace" }}>
+        style={{ fontSize: 12, fontWeight: 700, fill: "var(--color-text)", fontFamily: "monospace" }}>
         {total}
       </text>
     </svg>
@@ -64,17 +64,17 @@ const DonutChart = ({ data }) => {
 const LineTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background: "#1A1A24", border: "1px solid rgba(255,255,255,0.1)",
+    <div style={{ background: "var(--color-surface2)", border: "1px solid var(--color-border2)",
       borderRadius: 8, padding: "10px 14px", fontSize: 12 }}>
-      <div style={{ color: "#7A7A9A", marginBottom: 6, fontWeight: 600 }}>{label}</div>
-      <div style={{ color: "#00D4AA", fontWeight: 700 }}>{formatCurrency(payload[0]?.value ?? 0)}</div>
+      <div style={{ color: "var(--color-textMuted)", marginBottom: 6, fontWeight: 600 }}>{label}</div>
+      <div style={{ color: "var(--color-teal)", fontWeight: 700 }}>{formatCurrency(payload[0]?.value ?? 0)}</div>
     </div>
   );
 };
 
 const SkBox = ({ w = "100%", h = 14 }) => (
   <div style={{ width: w, height: h, borderRadius: 6,
-    backgroundImage: "linear-gradient(90deg,#1A1A24 0%,#22223A 50%,#1A1A24 100%)",
+    backgroundImage: "linear-gradient(90deg,var(--color-surface2) 0%,var(--color-surface3) 50%,var(--color-surface2) 100%)",
     backgroundSize: "200% 100%", animation: "shimmer 1.4s ease-in-out infinite" }} />
 );
 
@@ -123,10 +123,10 @@ const Dashboard = () => {
         @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
         @keyframes fadeUp  { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
         @keyframes barGrow { from{height:0} }
-        .db { --bg:#0D0D12;--s1:#13131A;--s2:#1A1A24;--s3:#22223A;
-              --b1:rgba(255,255,255,0.06);--b2:rgba(255,255,255,0.1);
-              --text:#F0F0F8;--muted:#7A7A9A;
-              --accent:#7C6AF7;--teal:#00D4AA;--coral:#F7916A;--danger:#F76464;
+        .db { --bg:var(--color-bg);--s1:var(--color-surface);--s2:var(--color-surface2);--s3:var(--color-surface3);
+              --b1:var(--color-border);--b2:var(--color-border2);
+              --text:var(--color-text);--muted:var(--color-textMuted);
+              --accent:var(--color-primary);--teal:var(--color-teal);--coral:var(--color-coral);--danger:var(--color-danger);
               min-height:100vh;background:var(--bg);color:var(--text);
               font-family:'Space Grotesk',sans-serif;font-size:14px; }
         .db-topbar { display:flex;align-items:center;justify-content:space-between;
@@ -196,9 +196,9 @@ const Dashboard = () => {
           background:rgba(247,100,100,.07);border:1px solid rgba(247,100,100,.2);
           border-radius:10px;color:#F76464;font-size:13px; }
         .recharts-cartesian-grid-horizontal line,
-        .recharts-cartesian-grid-vertical   line { stroke:rgba(255,255,255,0.05) !important; }
+        .recharts-cartesian-grid-vertical   line { stroke:var(--color-border) !important; }
         .recharts-xAxis .recharts-tick text,
-        .recharts-yAxis .recharts-tick text { fill:#7A7A9A !important;font-size:11px !important; }
+        .recharts-yAxis .recharts-tick text { fill:var(--color-textMuted) !important;font-size:11px !important; }
       `}</style>
 
       <div className="db">

@@ -37,9 +37,9 @@ const Pill = ({ value, map }) => {
 const CashFlowTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background: "#1A1A24", border: "1px solid rgba(255,255,255,0.1)",
+    <div style={{ background: "var(--color-surface2)", border: "1px solid var(--color-border2)",
       borderRadius: 8, padding: "10px 14px", fontSize: 12 }}>
-      <div style={{ color: "#7A7A9A", marginBottom: 6, fontWeight: 600 }}>{label}</div>
+      <div style={{ color: "var(--color-textMuted)", marginBottom: 6, fontWeight: 600 }}>{label}</div>
       {payload.map((p, i) => (
         <div key={i} style={{ color: p.color, fontWeight: 700, marginTop: 2 }}>
           {p.name}: {formatCurrency(p.value)}
@@ -385,7 +385,7 @@ const TransactionsTab = ({ categories }) => {
                       {Array.from({ length: 7 }).map((_, j) => (
                         <td key={j} style={{ padding: "13px 16px" }}>
                           <div style={{ height: 12, borderRadius: 5, width: j === 1 ? "70%" : "50%",
-                            background: "linear-gradient(90deg,#1A1A24 0%,#22223A 50%,#1A1A24 100%)",
+                            background: "linear-gradient(90deg,var(--color-surface2) 0%,var(--color-surface3) 50%,var(--color-surface2) 100%)",
                             backgroundSize: "200% 100%", animation: "shimmer 1.4s ease-in-out infinite" }} />
                         </td>
                       ))}
@@ -514,7 +514,7 @@ const CashFlowTab = () => {
               textTransform: "uppercase", letterSpacing: ".8px", marginBottom: 8 }}>{k.label}</div>
             {loading
               ? <div style={{ height: 24, width: 100, borderRadius: 6,
-                  backgroundImage: "linear-gradient(90deg,#1A1A24 0%,#22223A 50%,#1A1A24 100%)",
+                  backgroundImage: "linear-gradient(90deg,var(--color-surface2) 0%,var(--color-surface3) 50%,var(--color-surface2) 100%)",
                   backgroundSize: "200% 100%", animation: "shimmer 1.4s ease-in-out infinite" }} />
               : <div style={{ fontSize: 20, fontWeight: 700, fontFamily: "var(--font-mono)", color: k.color }}>
                   {formatCurrency(k.value)}
@@ -563,7 +563,7 @@ const CashFlowTab = () => {
           <div style={{ height: 200, display: "flex", alignItems: "flex-end", gap: 12 }}>
             {[80,120,60,100,70,90].map((h, i) => (
               <div key={i} style={{ flex: 1, height: h, borderRadius: 6,
-                backgroundImage: "linear-gradient(90deg,#1A1A24 0%,#22223A 50%,#1A1A24 100%)",
+                backgroundImage: "linear-gradient(90deg,var(--color-surface2) 0%,var(--color-surface3) 50%,var(--color-surface2) 100%)",
                 backgroundSize: "200% 100%", animation: "shimmer 1.4s ease-in-out infinite" }} />
             ))}
           </div>
@@ -575,12 +575,12 @@ const CashFlowTab = () => {
         ) : (
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#7A7A9A" }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fill: "var(--color-textMuted)" }} />
               <YAxis tickFormatter={(v) => `R$${(v/1000).toFixed(0)}k`}
-                tick={{ fontSize: 11, fill: "#7A7A9A" }} width={48} />
+                tick={{ fontSize: 11, fill: "var(--color-textMuted)" }} width={48} />
               <Tooltip content={<CashFlowTooltip />} />
-              <Legend wrapperStyle={{ fontSize: 11, color: "#7A7A9A" }} />
+              <Legend wrapperStyle={{ fontSize: 11, color: "var(--color-textMuted)" }} />
               <Bar dataKey="receita" name="Receita" fill="#00D4AA" opacity={0.8} radius={[4,4,0,0]} />
               <Bar dataKey="despesa" name="Despesa" fill="#F76464" opacity={0.8} radius={[4,4,0,0]} />
             </BarChart>

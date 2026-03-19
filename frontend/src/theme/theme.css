@@ -240,3 +240,154 @@ body { line-height: 1.6; -webkit-font-smoothing: antialiased; }
   .hidden-mobile  { display: none !important; }
   .visible-mobile { display: block !important; }
 }
+
+/* ── Tema claro ────────────────────────────────────────────────────────────────
+   Sobrescreve apenas as variáveis de cor — tipografia, espaçamento e
+   componentes herdados via var() se ajustam automaticamente.
+   ─────────────────────────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --color-bg:        #F4F4F8;
+  --color-surface:   #FFFFFF;
+  --color-surface2:  #EBEBF2;
+  --color-surface3:  #DDDDE8;
+  --color-border:    rgba(0,0,0,0.07);
+  --color-border2:   rgba(0,0,0,0.12);
+  --color-text:      #16161E;
+  --color-textSecondary: rgba(22,22,30,0.65);
+  --color-textMuted: #8585A0;
+
+  /* Acento primário fica igual — roxa funciona bem nos dois temas */
+  --color-primary:      #6C5CE7;
+  --color-primaryDark:  #5548C4;
+  --color-primaryLight: #8B7FFF;
+
+  /* Semânticas ajustadas para fundo claro */
+  --color-success: #00B894;
+  --color-warning: #E17A50;
+  --color-danger:  #E05454;
+  --color-info:    #5B8DB8;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
+  --shadow-lg: 0 10px 24px rgba(0,0,0,0.12);
+  --shadow-xl: 0 20px 40px rgba(0,0,0,0.14);
+}
+
+/* Scrollbar no tema claro */
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.15);
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,0.25);
+}
+
+/* Transição suave ao trocar tema — só em cor, não em layout */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+/* Exceções: elementos que não devem ter transição de cor (animações próprias) */
+.spinner, .spinner-ring, [class*="animate-"] {
+  transition: none !important;
+}
+
+/* ── Overrides de tema claro — baseados em classes CSS ─────────────────────── */
+
+/* Fundo geral */
+[data-theme="light"] body,
+[data-theme="light"] .main-content,
+[data-theme="light"] #root {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* Sidebar */
+[data-theme="light"] .sb-desktop,
+[data-theme="light"] .sb-mobile-panel {
+  background: #FFFFFF !important;
+  border-right-color: rgba(0,0,0,0.08) !important;
+}
+
+/* Botão toggle circular da sidebar */
+[data-theme="light"] .sb-desktop > button {
+  background: #FFFFFF !important;
+  border-color: rgba(0,0,0,0.12) !important;
+  color: #8585A0 !important;
+}
+
+/* Cards com classe CSS */
+[data-theme="light"] .chart-card,
+[data-theme="light"] .card,
+[data-theme="light"] .db-card,
+[data-theme="light"] .db-kpi {
+  background: #FFFFFF !important;
+  border-color: rgba(0,0,0,0.07) !important;
+}
+
+/* Inputs com classe CSS */
+[data-theme="light"] .input,
+[data-theme="light"] .textarea,
+[data-theme="light"] .db-date-input {
+  background: #EBEBF2 !important;
+  border-color: rgba(0,0,0,0.12) !important;
+  color: #16161E !important;
+}
+[data-theme="light"] .input::placeholder,
+[data-theme="light"] .textarea::placeholder { color: #8585A0 !important; }
+
+/* Select options */
+[data-theme="light"] select.input option,
+[data-theme="light"] select option {
+  background: #FFFFFF;
+  color: #16161E;
+}
+
+/* Topbar */
+[data-theme="light"] .topbar      { border-bottom-color: rgba(0,0,0,0.07) !important; }
+[data-theme="light"] .topbar-title { color: #16161E !important; }
+
+/* Dashboard classes */
+[data-theme="light"] .db          { background: #F4F4F8 !important; color: #16161E !important; }
+[data-theme="light"] .db-topbar   { border-bottom-color: rgba(0,0,0,0.07) !important; }
+[data-theme="light"] .db-card-badge { background: #EBEBF2 !important; }
+
+/* Hamburguer mobile */
+[data-theme="light"] .sb-ham {
+  background: #FFFFFF !important;
+  border-color: rgba(0,0,0,0.1) !important;
+  color: #8585A0 !important;
+}
+
+/* Drawer / Modal overlays — fundo preto funciona nos dois temas */
+[data-theme="light"] .sb-overlay { background: rgba(0,0,0,0.4); }
+
+/* Recharts no tema claro */
+[data-theme="light"] .recharts-cartesian-grid-horizontal line,
+[data-theme="light"] .recharts-cartesian-grid-vertical line {
+  stroke: var(--color-border) !important;
+}
+[data-theme="light"] .recharts-xAxis .recharts-tick text,
+[data-theme="light"] .recharts-yAxis .recharts-tick text {
+  fill: var(--color-textMuted) !important;
+}
+[data-theme="light"] .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: var(--color-surface2) !important;
+  border-color: var(--color-border2) !important;
+  color: var(--color-text) !important;
+}
+
+/* Drawer lateral (Orders) */
+[data-theme="light"] [style*="-16px 0 48px rgba(0,0,0"] {
+  box-shadow: -8px 0 32px rgba(0,0,0,0.15) !important;
+}
+
+/* Modal backdrop — ok em ambos */
+[data-theme="light"] [style*="rgba(0,0,0,0.6)"][style*="backdrop-filter"] {
+  background: rgba(0,0,0,0.35) !important;
+}
+
+/* KPI cards inline sem classe — captura pelo padrão de padding+border-radius */
+[data-theme="light"] .page-body > div > div[style] {
+  color: var(--color-text);
+}

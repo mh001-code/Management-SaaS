@@ -101,7 +101,7 @@ const OrderDetailModal = ({ order, onClose, onStatusChange, loadingAction }) => 
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div style={{
-        background: "#13131A", border: "1px solid rgba(255,255,255,0.08)",
+        background: "var(--color-surface)", border: "1px solid var(--color-border)",
         borderRadius: 16, padding: 28, width: "100%", maxWidth: 520,
         maxHeight: "90vh", overflowY: "auto",
         boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
@@ -109,13 +109,13 @@ const OrderDetailModal = ({ order, onClose, onStatusChange, loadingAction }) => 
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "#F0F0F8", marginBottom: 4 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>
               Pedido de Compra #{order.id}
             </div>
             <StatusBadge status={order.status} />
           </div>
           <button onClick={onClose} style={{
-            background: "none", border: "none", color: "#7A7A9A",
+            background: "none", border: "none", color: "var(--color-textMuted)",
             cursor: "pointer", fontSize: 20, lineHeight: 1, padding: 4,
           }}>×</button>
         </div>
@@ -132,22 +132,22 @@ const OrderDetailModal = ({ order, onClose, onStatusChange, loadingAction }) => 
             { label: "Observações", value: order.notes || "—" },
           ].map(({ label, value }) => (
             <div key={label} style={{
-              background: "rgba(255,255,255,0.03)", borderRadius: 9,
+              background: "rgba(0,0,0,0.02)", borderRadius: 9,
               padding: "10px 14px",
-              border: "1px solid rgba(255,255,255,0.06)",
+              border: "1px solid var(--color-border)",
             }}>
-              <div style={{ fontSize: 10, color: "#7A7A9A", fontWeight: 600,
+              <div style={{ fontSize: 10, color: "var(--color-textMuted)", fontWeight: 600,
                 textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 4 }}>
                 {label}
               </div>
-              <div style={{ fontSize: 13, color: "#F0F0F8", fontWeight: 500 }}>{value}</div>
+              <div style={{ fontSize: 13, color: "var(--color-text)", fontWeight: 500 }}>{value}</div>
             </div>
           ))}
         </div>
 
         {/* Itens */}
         <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: "#7A7A9A",
+          <div style={{ fontSize: 11, fontWeight: 600, color: "var(--color-textMuted)",
             textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 10 }}>
             Itens
           </div>
@@ -155,15 +155,15 @@ const OrderDetailModal = ({ order, onClose, onStatusChange, loadingAction }) => 
             {(order.items || []).map((item, i) => (
               <div key={i} style={{
                 display: "flex", justifyContent: "space-between", alignItems: "center",
-                background: "rgba(255,255,255,0.03)", borderRadius: 8,
-                padding: "8px 14px", border: "1px solid rgba(255,255,255,0.05)",
+                background: "rgba(0,0,0,0.02)", borderRadius: 8,
+                padding: "8px 14px", border: "1px solid var(--color-border)",
               }}>
-                <span style={{ fontSize: 13, color: "#F0F0F8" }}>{item.product_name}</span>
+                <span style={{ fontSize: 13, color: "var(--color-text)" }}>{item.product_name}</span>
                 <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-                  <span style={{ fontSize: 12, color: "#7A7A9A" }}>
+                  <span style={{ fontSize: 12, color: "var(--color-textMuted)" }}>
                     {item.quantity} un. × {formatCurrency(item.unit_cost)}
                   </span>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: "#F0F0F8", fontFamily: "var(--font-mono)" }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)", fontFamily: "var(--font-mono)" }}>
                     {formatCurrency(item.quantity * item.unit_cost)}
                   </span>
                 </div>
@@ -281,7 +281,7 @@ const NewOrderForm = ({ suppliers, products, onCreated }) => {
           {/* Header de colunas */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 110px 32px",
             gap: 8, width: "calc(100% - 60px)", fontSize: 10, fontWeight: 600,
-            color: "#7A7A9A", textTransform: "uppercase", letterSpacing: "0.6px" }}>
+            color: "var(--color-textMuted)", textTransform: "uppercase", letterSpacing: "0.6px" }}>
             <span>Produto</span>
             <span>Qtd</span>
             <span>Custo un.</span>
@@ -318,7 +318,7 @@ const NewOrderForm = ({ suppliers, products, onCreated }) => {
 
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           {total > 0 && (
-            <span style={{ fontSize: 13, fontWeight: 600, color: "#F0F0F8" }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>
               Total: {formatCurrency(total)}
             </span>
           )}
@@ -462,10 +462,10 @@ const PurchaseOrders = () => {
             { label: "Recebidos",  value: kpis.recebido,   color: "#00D4AA" },
           ].map(({ label, value, color }) => (
             <div key={label} style={{
-              background: "#13131A", border: "1px solid rgba(255,255,255,0.06)",
+              background: "var(--color-surface)", border: "1px solid var(--color-border)",
               borderRadius: 12, padding: "14px 18px",
             }}>
-              <div style={{ fontSize: 10, fontWeight: 600, color: "#7A7A9A",
+              <div style={{ fontSize: 10, fontWeight: 600, color: "var(--color-textMuted)",
                 textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 6 }}>
                 {label}
               </div>
@@ -508,7 +508,7 @@ const PurchaseOrders = () => {
               },
               { key: "items", label: "Itens",
                 render: (v) => (
-                  <span style={{ fontSize: 12, color: "#7A7A9A" }}>
+                  <span style={{ fontSize: 12, color: "var(--color-textMuted)" }}>
                     {(v || []).length} produto{(v || []).length !== 1 ? "s" : ""}
                   </span>
                 ),
