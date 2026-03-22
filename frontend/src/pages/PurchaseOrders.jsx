@@ -47,41 +47,49 @@ const StatusBadge = ({ status }) => {
 // Linha de item do formulário de criação
 const ItemRow = ({ item, index, products, onChange, onRemove }) => (
   <div style={{
-    display: "grid", gridTemplateColumns: "1fr 80px 110px 32px",
-    gap: 8, alignItems: "center",
+    display: "grid",
+    gridTemplateColumns: "1fr auto",
+    gap: 8,
   }}>
-    <select
-      className="input"
-      value={item.product_id}
-      onChange={(e) => onChange(index, "product_id", e.target.value)}
-    >
-      <option value="">Selecione o produto</option>
-      {products.map((p) => (
-        <option key={p.id} value={p.id}>{p.name}</option>
-      ))}
-    </select>
-    <input
-      className="input"
-      type="number" min="1"
-      placeholder="Qtd"
-      value={item.quantity}
-      onChange={(e) => onChange(index, "quantity", e.target.value)}
-    />
-    <input
-      className="input"
-      type="number" min="0" step="0.01"
-      placeholder="Custo un."
-      value={item.unit_cost}
-      onChange={(e) => onChange(index, "unit_cost", e.target.value)}
-    />
+    {/* Linha principal: produto + qtd + custo */}
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 70px 100px", gap: 8, minWidth: 0 }}>
+      <select
+        className="input"
+        value={item.product_id}
+        onChange={(e) => onChange(index, "product_id", e.target.value)}
+        style={{ minWidth: 0 }}
+      >
+        <option value="">Selecione o produto</option>
+        {products.map((p) => (
+          <option key={p.id} value={p.id}>{p.name}</option>
+        ))}
+      </select>
+      <input
+        className="input"
+        type="number" min="1"
+        placeholder="Qtd"
+        value={item.quantity}
+        onChange={(e) => onChange(index, "quantity", e.target.value)}
+        style={{ minWidth: 0 }}
+      />
+      <input
+        className="input"
+        type="number" min="0" step="0.01"
+        placeholder="Custo un."
+        value={item.unit_cost}
+        onChange={(e) => onChange(index, "unit_cost", e.target.value)}
+        style={{ minWidth: 0 }}
+      />
+    </div>
     <button
       onClick={() => onRemove(index)}
       style={{
-        width: 32, height: 32, borderRadius: 7,
+        width: 32, height: 32, borderRadius: 7, flexShrink: 0,
         border: "1px solid rgba(247,100,100,0.2)",
         background: "rgba(247,100,100,0.08)",
         color: "#F76464", cursor: "pointer", fontSize: 16,
         display: "flex", alignItems: "center", justifyContent: "center",
+        alignSelf: "start", marginTop: 2,
       }}
     >×</button>
   </div>
@@ -122,7 +130,7 @@ const OrderDetailModal = ({ order, onClose, onStatusChange, loadingAction }) => 
 
         {/* Info */}
         <div style={{
-          display: "grid", gridTemplateColumns: "1fr 1fr",
+          display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
           gap: 12, marginBottom: 20,
         }}>
           {[
@@ -260,7 +268,7 @@ const NewOrderForm = ({ suppliers, products, onCreated }) => {
       </div>
 
       {/* Fornecedor + Observações */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, marginBottom: 16 }}>
         <div>
           <label className="form-label">Fornecedor *</label>
           <select className="input" value={supplierId} onChange={(e) => setSupplierId(e.target.value)}>
@@ -279,13 +287,12 @@ const NewOrderForm = ({ suppliers, products, onCreated }) => {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
           <label className="form-label" style={{ margin: 0 }}>Itens *</label>
           {/* Header de colunas */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 110px 32px",
-            gap: 8, width: "calc(100% - 60px)", fontSize: 10, fontWeight: 600,
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 70px 100px",
+            gap: 8, flex: 1, fontSize: 10, fontWeight: 600,
             color: "var(--color-textMuted)", textTransform: "uppercase", letterSpacing: "0.6px" }}>
             <span>Produto</span>
             <span>Qtd</span>
             <span>Custo un.</span>
-            <span />
           </div>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
@@ -454,7 +461,7 @@ const PurchaseOrders = () => {
 
       <div className="page-body">
         {/* KPIs */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginBottom: 20 }}>
           {[
             { label: "Total",      value: kpis.total,      color: "#7C6AF7" },
             { label: "Pendentes",  value: kpis.pendente,   color: "#F7916A" },

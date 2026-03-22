@@ -143,7 +143,7 @@ const Dashboard = () => {
           color:#fff;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer; }
         .db-btn:hover { opacity:.85; }
         .db-body { padding:28px 32px;display:flex;flex-direction:column;gap:24px; }
-        .db-kpi-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px; }
+        .db-kpi-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px; }
         .db-kpi { background:var(--s1);border:1px solid var(--b1);border-radius:14px;
           padding:20px 22px;position:relative;overflow:hidden;
           animation:fadeUp .45s cubic-bezier(0.22,1,0.36,1) both; }
@@ -166,7 +166,7 @@ const Dashboard = () => {
         .db-card-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:18px; }
         .db-card-title  { font-size:13px;font-weight:600; }
         .db-card-badge  { font-size:11px;padding:3px 9px;background:var(--s2);border-radius:6px;color:var(--muted); }
-        .db-bars { display:flex;align-items:flex-end;gap:10px;height:110px;padding-top:8px; }
+        .db-bars { display:flex;align-items:flex-end;gap:6px;height:110px;padding-top:8px;overflow-x:auto; }
         .db-bar-wrap { flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end; }
         .db-bar { width:100%;border-radius:4px 4px 0 0;transition:opacity 150ms;animation:barGrow .6s cubic-bezier(0.22,1,0.36,1) both; }
         .db-bar:hover { opacity:.7; }
@@ -177,11 +177,11 @@ const Dashboard = () => {
         .db-legend-dot   { width:7px;height:7px;border-radius:50%;flex-shrink:0; }
         .db-legend-name  { color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
         .db-legend-val   { font-weight:600;font-family:'JetBrains Mono',monospace;font-size:12px; }
-        .db-list-item { display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--b1); }
+        .db-list-item { display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--b1);min-width:0; }
         .db-list-item:last-child { border-bottom:none;padding-bottom:0; }
         .db-avatar { width:32px;height:32px;border-radius:9px;display:flex;align-items:center;
           justify-content:center;font-size:11px;font-weight:700;flex-shrink:0; }
-        .db-list-info { flex:1;min-width:0; }
+        .db-list-info { flex:1;min-width:0;overflow:hidden; }
         .db-list-name { font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
         .db-list-sub  { font-size:11px;color:var(--muted);margin-top:1px; }
         .db-list-val  { font-size:13px;font-weight:600;font-family:'JetBrains Mono',monospace;flex-shrink:0; }
@@ -201,7 +201,7 @@ const Dashboard = () => {
         .recharts-yAxis .recharts-tick text { fill:var(--color-textMuted) !important;font-size:11px !important; }
       `}</style>
 
-      <div className="db">
+      <div className="db" style={{ overflowX: "hidden" }}>
         {/* Topbar */}
         <div className="db-topbar">
           <div>

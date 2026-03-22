@@ -320,19 +320,19 @@ const TransactionsTab = ({ categories }) => {
 
       {/* ── Filtros ── */}
       <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)",
-        borderRadius: 12, padding: "14px 18px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        borderRadius: 12, padding: "14px 18px", overflowX: "auto" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", minWidth: 0 }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: "var(--color-textMuted)",
             textTransform: "uppercase", letterSpacing: ".8px", marginRight: 4 }}>Filtros</span>
 
-          <select style={{ ...inputStyle, width: "auto" }} value={filters.type}
+          <select style={{ ...inputStyle, width: "auto", maxWidth: "100%", flex: "1 1 130px" }} value={filters.type}
             onChange={(e) => setFilters((p) => ({ ...p, type: e.target.value }))}>
             <option value="">Todos os tipos</option>
             <option value="receita">Receita</option>
             <option value="despesa">Despesa</option>
           </select>
 
-          <select style={{ ...inputStyle, width: "auto" }} value={filters.status}
+          <select style={{ ...inputStyle, width: "auto", maxWidth: "100%", flex: "1 1 130px" }} value={filters.status}
             onChange={(e) => setFilters((p) => ({ ...p, status: e.target.value }))}>
             <option value="">Todos os status</option>
             <option value="pendente">Pendente</option>
@@ -341,7 +341,7 @@ const TransactionsTab = ({ categories }) => {
             <option value="cancelado">Cancelado</option>
           </select>
 
-          <select style={{ ...inputStyle, width: "auto" }} value={filters.category_id}
+          <select style={{ ...inputStyle, width: "auto", maxWidth: "100%", flex: "1 1 150px" }} value={filters.category_id}
             onChange={(e) => setFilters((p) => ({ ...p, category_id: e.target.value }))}>
             <option value="">Todas as categorias</option>
             {categories.map((c) => (
@@ -368,7 +368,7 @@ const TransactionsTab = ({ categories }) => {
 
       {/* ── Tabela ── */}
       <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)",
-        borderRadius: 14, overflow: "hidden" }}>
+        borderRadius: 14, overflow: "hidden", minWidth: 0 }}>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
@@ -491,7 +491,7 @@ const CashFlowTab = () => {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
         <span style={{ fontSize: 12, color: "var(--color-textMuted)" }}>De</span>
         <input type="date" style={inputStyle} value={range.from}
           onChange={(e) => setRange((p) => ({ ...p, from: e.target.value }))} />

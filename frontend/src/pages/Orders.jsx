@@ -233,7 +233,7 @@ const Orders = () => {
       <div className="page-body">
         {error && <div className="alert alert-danger">{error}</div>}
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginBottom: 20 }}>
           {[
             { label: "Total filtrado", value: kpis.total,                   color: "#7C6AF7", mono: false },
             { label: "Receita",        value: formatCurrency(kpis.revenue), color: "#00D4AA", mono: true  },

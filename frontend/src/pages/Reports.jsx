@@ -477,8 +477,9 @@ const inputSm = {
   padding: "6px 10px", background: "var(--color-surface2)",
   border: "1px solid var(--color-border2)", borderRadius: 7,
   color: "var(--color-text)", fontFamily: "inherit", fontSize: 12, outline: "none",
+  flex: "1 1 120px", minWidth: 0,
 };
-const filterRow   = { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" };
+const filterRow   = { display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", width: "100%" };
 const filterLabel = { fontSize: 12, color: "var(--color-textMuted)" };
 const countBadge  = {
   fontSize: 11, fontWeight: 600, padding: "3px 10px",

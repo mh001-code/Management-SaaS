@@ -85,9 +85,11 @@ const Sidebar = () => {
           border:1px solid var(--color-border2);
           background:var(--color-surface); color:var(--color-textSecondary);
           display:none; align-items:center; justify-content:center;
-          cursor:pointer; transition:background 150ms,color 150ms;
+          cursor:pointer;
+          opacity:0.35;
+          transition:background 150ms,color 150ms,opacity 200ms;
         }
-        .sb-ham:hover{ background:var(--color-surface2); color:var(--color-text); }
+        .sb-ham:hover,.sb-ham:focus{ background:var(--color-surface2); color:var(--color-text); opacity:1; }
         @media(max-width:768px){ .sb-ham{ display:flex; } }
 
         .sb-mobile-panel {
@@ -105,7 +107,9 @@ const Sidebar = () => {
           margin-left:var(--sb-width,240px) !important;
           transition:margin-left 260ms cubic-bezier(0.4,0,0.2,1);
         }
-        @media(max-width:768px){ .app-main-layout{ margin-left:0 !important; } }
+        @media(max-width:768px){
+          .app-main-layout{ margin-left:0 !important; padding-top:64px; }
+        }
 
         .sb-navlink {
           display:flex; align-items:center; gap:10px;

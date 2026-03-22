@@ -46,6 +46,13 @@ const PageShell = memo(({ title, count, icon, actions, description }) => (
       }
       .ps-desc { font-size: 12px; color: var(--color-textMuted); }
       .ps-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+      @media (max-width: 768px) {
+        .ps-topbar { flex-direction: column; align-items: flex-start; gap: 10px; }
+        .ps-actions { width: 100%; }
+        .ps-actions input, .ps-actions select, .ps-actions button {
+          flex: 1 1 140px; min-width: 0; max-width: 100%;
+        }
+      }
     `}</style>
     <div className="ps-topbar">
       <div className="ps-left">

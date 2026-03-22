@@ -147,7 +147,7 @@ const DataTable = memo(({
           transition: background 150ms ease;
         }
         .dt-tr:last-child { border-bottom: none; }
-        .dt-tr:hover { background: rgba(124,106,247,0.04); }
+        .dt-tr:hover { background: rgba(124,106,247,0.06); }
 
         .dt-td {
           padding: 13px 16px;
@@ -201,7 +201,7 @@ const DataTable = memo(({
       `}</style>
 
       {/* ── Desktop ── */}
-      <div style={{ overflowX: "auto" }} className="hidden-mobile">
+      <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch", maxWidth: "100%" }} className="hidden-mobile">
         <table className="dt-table">
           <thead>
             <tr>

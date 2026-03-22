@@ -339,3 +339,105 @@ select.input option { background: var(--color-surface2); color: var(--color-text
   background: rgba(108,92,231,0.1) !important;
   border-color: rgba(108,92,231,0.2) !important;
 }
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE — mobile-first corrections
+   ═══════════════════════════════════════════════════════ */
+
+/* Hamburger: quase invisível no idle, visível no hover/focus */
+.sb-ham {
+  opacity: 0.35;
+  transition: opacity 200ms ease, background 150ms, color 150ms !important;
+}
+.sb-ham:hover,
+.sb-ham:focus { opacity: 1; }
+
+/* Page body: menos padding em telas pequenas */
+@media (max-width: 768px) {
+  .page-body  { padding: var(--space-md) var(--space-md); }
+  .topbar     { padding: var(--space-md) var(--space-md); }
+  .chart-card { padding: var(--space-md); }
+  .card-body  { padding: var(--space-lg); }
+}
+
+/* Garantir que nenhum container bloqueie scroll horizontal de tabelas */
+.chart-card,
+.card,
+.page-body > div {
+  min-width: 0;
+}
+
+/* Grids de KPI: 2 colunas no mobile, 1 se muito pequeno */
+@media (max-width: 768px) {
+  .kpi-grid-4,
+  [style*="repeat(4, 1fr)"],
+  [style*="repeat(4,1fr)"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+@media (max-width: 420px) {
+  .kpi-grid-4,
+  [style*="repeat(4, 1fr)"],
+  [style*="repeat(4,1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Formulários inline (filtros/actions no PageShell) */
+@media (max-width: 768px) {
+  .ps-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .ps-actions .input,
+  .ps-actions select,
+  .ps-actions input[type="date"] {
+    flex: 1 1 140px;
+    min-width: 0;
+    width: 100% !important;
+  }
+  .ps-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Tabela: scroll horizontal seguro */
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Dashboard topbar com filtros de data */
+@media (max-width: 768px) {
+  .db-topbar  {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 16px !important;
+    gap: 12px !important;
+  }
+  .db-date-row {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 6px !important;
+  }
+  .db-date-input {
+    flex: 1 1 120px;
+    min-width: 0;
+  }
+  .db-body {
+    padding: 16px !important;
+    gap: 16px !important;
+  }
+  .db-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .db-row-2-1,
+  .db-row-1-1 {
+    grid-template-columns: 1fr !important;
+  }
+}
+@media (max-width: 420px) {
+  .db-kpi-grid { grid-template-columns: 1fr !important; }
+}
