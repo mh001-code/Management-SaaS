@@ -44,14 +44,7 @@ export default defineConfig({
   build: {
     // Otimização de bundle
     target: 'esnext',
-    minify: 'terser',
-    
-    terserOptions: {
-      compress: {
-        drop_console: true, // Remove console.log em produção
-        drop_debugger: true,
-      },
-    },
+    minify: 'esbuild',
 
     // Rollup options
     rollupOptions: {
