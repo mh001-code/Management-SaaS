@@ -60,4 +60,4 @@ app.get("/", (req, res) => res.send("API rodando 🚀"));
 
 app.use(errorHandler);
 
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`)); 
