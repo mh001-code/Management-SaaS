@@ -162,7 +162,8 @@ const Dashboard = () => {
         .db-row-1-1 { grid-template-columns:1fr 1fr; }
         @media(max-width:900px){.db-row-2-1,.db-row-1-1{grid-template-columns:1fr}}
         .db-card { background:var(--s1);border:1px solid var(--b1);border-radius:14px;
-          padding:22px;animation:fadeUp .45s cubic-bezier(0.22,1,0.36,1) .18s both; }
+          padding:22px;animation:fadeUp .45s cubic-bezier(0.22,1,0.36,1) .18s both;
+          min-width:0; overflow:hidden; }
         .db-card-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:18px; }
         .db-card-title  { font-size:13px;font-weight:600; }
         .db-card-badge  { font-size:11px;padding:3px 9px;background:var(--s2);border-radius:6px;color:var(--muted); }

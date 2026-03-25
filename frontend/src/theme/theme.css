@@ -368,6 +368,9 @@ select.input option { background: var(--color-surface2); color: var(--color-text
   min-width: 0;
 }
 
+/* Grid items e flex items nunca expandem abaixo do mínimo do container */
+.db-row > * { min-width: 0; }
+
 /* Grids de KPI: 2 colunas no mobile, 1 se muito pequeno */
 @media (max-width: 768px) {
   .kpi-grid-4,

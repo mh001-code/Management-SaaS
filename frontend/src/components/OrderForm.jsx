@@ -235,8 +235,8 @@ const OrderForm = ({ onOrderCreated, editingOrder, onCancel }) => {
 
         {/* Adicionar Produtos */}
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'auto auto 1fr',
+          display: 'flex',
+          flexWrap: 'wrap',
           gap: 'var(--space-md)',
           alignItems: 'flex-end',
           marginBottom: 'var(--space-2xl)',
@@ -246,7 +246,7 @@ const OrderForm = ({ onOrderCreated, editingOrder, onCancel }) => {
           border: '1px solid var(--color-border)',
         }}>
           {/* Seletor de Produto */}
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: '1 1 200px', minWidth: 0 }}>
             <label style={{
               display: 'block',
               fontSize: 'var(--text-sm)',
@@ -285,7 +285,7 @@ const OrderForm = ({ onOrderCreated, editingOrder, onCancel }) => {
           </div>
 
           {/* Quantidade */}
-          <div style={{ width: '100px' }}>
+          <div style={{ width: '100px', flexShrink: 0 }}>
             <label style={{
               display: 'block',
               fontSize: 'var(--text-sm)',
