@@ -10,20 +10,33 @@ export function useNotifications() {
 
   const fetch = useCallback(async () => {
     try {
-      // Busca dados financeiros e de estoque em paralelo
-      const [summaryRes, financialRes] = await Promise.all([
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const in7days = new Date(today);
+      in7days.setDate(in7days.getDate() + 7);
+
+      const todayStr     = today.toISOString().split("T")[0];
+      const yesterdayStr = new Date(today.getTime() - 86400000).toISOString().split("T")[0];
+      const in7daysStr   = in7days.toISOString().split("T")[0];
+
+      // Busca em paralelo: resumo, marcados como vencido, e pendentes com prazo já passado
+      const [summaryRes, vencidosRes, pendentesAtrasadosRes] = await Promise.all([
         api.get("/summary"),
         api.get("/financial?status=vencido"),
+        api.get(`/financial?status=pendente&to=${yesterdayStr}`),
       ]);
 
-      const summary     = summaryRes.data;
-      const vencidos    = financialRes.data || [];
+      const summary            = summaryRes.data;
+      const vencidos           = vencidosRes.data || [];
+      const pendentesAtrasados = pendentesAtrasadosRes.data || [];
+
+      // Mescla e desduplicata: vencido explícito + pendente com prazo passado
+      const todosVencidos = [...vencidos];
+      for (const t of pendentesAtrasados) {
+        if (!todosVencidos.find((v) => v.id === t.id)) todosVencidos.push(t);
+      }
 
       const newAlerts = [];
-      const today     = new Date();
-      today.setHours(0, 0, 0, 0);
-      const in7days   = new Date(today);
-      in7days.setDate(in7days.getDate() + 7);
 
       // ── Estoque zerado ────────────────────────────────────────────────────
       const semEstoque = (summary.lowStock || []).filter((p) => p.quantity === 0);
@@ -55,28 +68,27 @@ export function useNotifications() {
         });
       }
 
-      // ── Lançamentos vencidos ──────────────────────────────────────────────
-      if (vencidos.length > 0) {
-        const totalVencido = vencidos.reduce((s, t) => s + Number(t.amount), 0);
+      // ── Lançamentos vencidos (status=vencido + pendentes com prazo passado) ─
+      if (todosVencidos.length > 0) {
+        const totalVencido = todosVencidos.reduce((s, t) => s + Number(t.amount), 0);
         newAlerts.push({
           id:       "fin-overdue",
           type:     "danger",
           category: "Financeiro",
           icon:     "🔴",
-          title:    `${vencidos.length} lançamento${vencidos.length > 1 ? "s" : ""} vencido${vencidos.length > 1 ? "s" : ""}`,
+          title:    `${todosVencidos.length} lançamento${todosVencidos.length > 1 ? "s" : ""} vencido${todosVencidos.length > 1 ? "s" : ""}`,
           subtitle: `Total: R$ ${Number(totalVencido).toFixed(2).replace(".", ",")}`,
-          items:    vencidos.slice(0, 5).map((t) =>
-            `${t.description} — R$ ${Number(t.amount).toFixed(2).replace(".", ",")}`
-          ),
+          items:    todosVencidos.slice(0, 5).map((t) => {
+            const due = t.due_date ? new Date(t.due_date).toLocaleDateString("pt-BR") : null;
+            return `${t.description} — R$ ${Number(t.amount).toFixed(2).replace(".", ",")}${due ? ` (venc. ${due})` : ""}`;
+          }),
           link:     "/financial",
           linkLabel:"Ver financeiro",
         });
       }
 
-      // ── Vencendo em 7 dias ────────────────────────────────────────────────
+      // ── Vencendo em 7 dias (pendentes com prazo futuro) ───────────────────
       try {
-        const todayStr   = today.toISOString().split("T")[0];
-        const in7daysStr = in7days.toISOString().split("T")[0];
         const upcomingRes = await api.get(
           `/financial?status=pendente&from=${todayStr}&to=${in7daysStr}`
         );
