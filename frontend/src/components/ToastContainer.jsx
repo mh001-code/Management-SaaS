@@ -101,12 +101,12 @@ const Toast = ({ toast, onRemove }) => {
     <>
       <style>{`
         @keyframes toast-in {
-          from { opacity: 0; transform: translateX(110%) scale(0.95); }
-          to   { opacity: 1; transform: translateX(0)   scale(1);    }
+          from { opacity: 0; transform: translateY(12px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0)    scale(1);    }
         }
         @keyframes toast-out {
-          from { opacity: 1; transform: translateX(0)   scale(1);    max-height: 80px; margin-bottom: 8px; }
-          to   { opacity: 0; transform: translateX(110%) scale(0.95); max-height: 0;   margin-bottom: 0;   }
+          from { opacity: 1; transform: translateY(0)    scale(1);    max-height: 80px; margin-bottom: 8px; }
+          to   { opacity: 0; transform: translateY(12px) scale(0.97); max-height: 0;   margin-bottom: 0;   }
         }
         @keyframes toast-spin {
           to { transform: rotate(360deg); }
@@ -245,25 +245,40 @@ const ToastContainer = () => {
   if (toasts.length === 0) return null;
 
   return (
-    <div
-      aria-label="Notificações"
-      style={{
-        position: "fixed",
-        bottom: "24px",
-        right: "24px",
-        zIndex: 9999,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "flex-end",
-        pointerEvents: "none",
-      }}
-    >
-      {toasts.map((toast) => (
-        <div key={toast.id} style={{ pointerEvents: "auto" }}>
-          <Toast toast={toast} onRemove={handleRemove} />
-        </div>
-      ))}
-    </div>
+    <>
+      <style>{`
+        .toast-container {
+          position: fixed;
+          bottom: 24px;
+          right: 24px;
+          z-index: 9999;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          pointer-events: none;
+        }
+        @media (max-width: 480px) {
+          .toast-container {
+            left: 8px;
+            right: 8px;
+            bottom: 16px;
+            align-items: stretch;
+          }
+          .toast-container .toast-item {
+            min-width: 0 !important;
+            max-width: 100% !important;
+            width: 100%;
+          }
+        }
+      `}</style>
+      <div aria-label="Notificações" className="toast-container">
+        {toasts.map((toast) => (
+          <div key={toast.id} className="toast-item" style={{ pointerEvents: "auto" }}>
+            <Toast toast={toast} onRemove={handleRemove} />
+          </div>
+        ))}
+      </div>
+    </>
   );
 };
 

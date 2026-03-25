@@ -100,7 +100,7 @@ export default function NotificationBell({ collapsed }) {
 
       {/* Dropdown */}
       {open && (
-        <div style={{
+        <div className="notif-dropdown" style={{
           position: "fixed",
           left: collapsed ? 80 : 248,
           bottom: 60,
@@ -113,7 +113,17 @@ export default function NotificationBell({ collapsed }) {
           overflow: "hidden",
           animation: "fadeUp 200ms cubic-bezier(0.22,1,0.36,1)",
         }}>
-          <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}`}</style>
+          <style>{`
+            @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+            @media(max-width:768px){
+              .notif-dropdown{
+                left: 8px !important;
+                right: 8px !important;
+                width: auto !important;
+                bottom: 8px !important;
+              }
+            }
+          `}</style>
 
           {/* Header do dropdown */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
