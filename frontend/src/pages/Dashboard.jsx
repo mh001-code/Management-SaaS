@@ -190,6 +190,11 @@ const Dashboard = () => {
         .db-stock-zero { background:rgba(247,100,100,.12);color:#F76464; }
         .db-stock-low  { background:rgba(247,145,106,.12);color:#F7916A; }
         .db-empty { display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;color:var(--muted);gap:8px; }
+        @media(max-width:600px){
+          .db-kpi-value { font-size:18px !important; letter-spacing:-0.5px !important; }
+          .db-topbar { padding:16px !important; }
+          .db-body { padding:16px !important; }
+        }
         .db-empty-icon { font-size:24px;opacity:.5; }
         .db-empty-text { font-size:13px; }
         .db-error-banner { display:flex;align-items:center;gap:10px;padding:12px 16px;

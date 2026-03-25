@@ -61,7 +61,7 @@ const OrderDrawer = ({ order, onClose }) => {
       <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.45)" }} onClick={onClose} />
       <div style={{
         position: "fixed", top: 0, right: 0, bottom: 0, zIndex: 901,
-        width: 380, background: "var(--color-surface)",
+        width: "min(380px, 100vw)", background: "var(--color-surface)",
         borderLeft: "1px solid var(--color-border)",
         boxShadow: "-16px 0 48px rgba(0,0,0,0.5)",
         display: "flex", flexDirection: "column",

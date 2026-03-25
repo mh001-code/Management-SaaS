@@ -9,7 +9,8 @@
     "start": "node src/index.js",
     "lint": "eslint .",
     "migrate": "node scripts/migrate.js",
-    "create-admin": "node createAdmin.js"
+    "create-admin": "node createAdmin.js",
+    "seed-demo": "node scripts/seed-demo.js"
   },
   "keywords": ["node", "express", "postgresql", "api", "saas"],
   "author": "Márcio Henrique",

@@ -259,7 +259,7 @@ const TransactionsTab = ({ categories }) => {
               <option value="receita">Receita</option>
             </select>
           </div>
-          <div style={{ gridColumn: "span 2" }}>
+          <div style={{ gridColumn: "1 / -1" }}>
             <label style={labelStyle}>Descrição *</label>
             <input style={inputStyle} placeholder="Ex: Aluguel março" value={values.description}
               onChange={(e) => setFieldValue("description", e.target.value)} required />
@@ -349,12 +349,12 @@ const TransactionsTab = ({ categories }) => {
             ))}
           </select>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
             <span style={{ fontSize: 12, color: "var(--color-textMuted)" }}>Vencimento de</span>
-            <input type="date" style={{ ...inputStyle, width: "auto" }} value={filters.from}
+            <input type="date" style={{ ...inputStyle, width: "auto", flex: "1 1 120px", minWidth: 0 }} value={filters.from}
               onChange={(e) => setFilters((p) => ({ ...p, from: e.target.value }))} />
             <span style={{ fontSize: 12, color: "var(--color-textMuted)" }}>até</span>
-            <input type="date" style={{ ...inputStyle, width: "auto" }} value={filters.to}
+            <input type="date" style={{ ...inputStyle, width: "auto", flex: "1 1 120px", minWidth: 0 }} value={filters.to}
               onChange={(e) => setFilters((p) => ({ ...p, to: e.target.value }))} />
           </div>
 

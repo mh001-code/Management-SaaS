@@ -97,6 +97,7 @@ html, body {
   font-family: var(--font-body);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 #root { width: 100%; height: 100%; }
 
@@ -440,4 +441,32 @@ select.input option { background: var(--color-surface2); color: var(--color-text
 }
 @media (max-width: 420px) {
   .db-kpi-grid { grid-template-columns: 1fr !important; }
+}
+
+/* Prevenir overflow horizontal global em mobile */
+@media (max-width: 768px) {
+  .app-main-layout,
+  .main-content {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  /* PageShell: padding menor em telas muito pequenas */
+  .ps-topbar {
+    padding: 14px 16px !important;
+  }
+
+  /* Botões no ps-actions não encolhem abaixo do mínimo legível */
+  .ps-actions button {
+    flex: 0 0 auto !important;
+    width: auto !important;
+  }
+}
+
+/* Donut chart no Dashboard: flex wrapping em telas muito pequenas */
+@media (max-width: 420px) {
+  .db-donut-wrap {
+    flex-direction: column;
+    align-items: center;
+  }
 }

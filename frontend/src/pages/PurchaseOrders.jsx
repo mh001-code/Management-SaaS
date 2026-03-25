@@ -52,7 +52,7 @@ const ItemRow = ({ item, index, products, onChange, onRemove }) => (
     gap: 8,
   }}>
     {/* Linha principal: produto + qtd + custo */}
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 70px 100px", gap: 8, minWidth: 0 }}>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr minmax(60px, 70px) minmax(90px, 100px)", gap: 8, minWidth: 0 }}>
       <select
         className="input"
         value={item.product_id}
